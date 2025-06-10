@@ -37,6 +37,7 @@ enum ActivityType: String, Codable, CaseIterable {
     case run = "Run"
     case walk = "Walk"
     case hike = "Hike"
+    case lift = "Lift"
     case bike = "Bike"
     case swim = "Swim"
     case other = "Other"
