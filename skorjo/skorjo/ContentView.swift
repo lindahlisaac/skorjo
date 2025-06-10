@@ -16,76 +16,100 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 8) {
-                    DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 4)
+            ZStack {
+                Color(.systemGroupedBackground).ignoresSafeArea()
 
-                    TextField("Title", text: $title)
-                        .textFieldStyle(.roundedBorder)
+                VStack(spacing: 0) {
+                    // Entry Form
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("New Entry")
+                            .font(.title2)
+                            .bold()
 
-                    TextField("Write your entry...", text: $text, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .lineLimit(2...4)
+                        DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
-                    TextField("Strava Link (optional)", text: $stravaLink)
-                        .textFieldStyle(.roundedBorder)
+                        TextField("Title", text: $title)
+                            .textFieldStyle(.roundedBorder)
+                            .contextMenu { } // Ensures paste support
 
-                    Picker("Activity", selection: $activityType) {
-                        ForEach(ActivityType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-                .padding(.horizontal)
+                        TextEditor(text: $text)
+                            .frame(minHeight: 100)
+                            .padding(6)
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(8)
 
-                Button(action: addEntry) {
-                    Label("Add Entry", systemImage: "plus.circle.fill")
-                        .font(.title2)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
-                .padding(.horizontal)
+                        TextField("Strava Link (optional)", text: $stravaLink)
+                            .textFieldStyle(.roundedBorder)
+                            .contextMenu { }
 
-                List {
-                    ForEach(entries) { entry in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(entry.activityType.rawValue)
-                                    .font(.caption)
-                                    .padding(4)
-                                    .background(.blue.opacity(0.1))
-                                    .clipShape(RoundedRectangle(cornerRadius: 4))
-
-                                Spacer()
-                                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-
-                            Text(entry.title).bold()
-                            Text(entry.text)
-
-                            if let link = entry.stravaLink, !link.isEmpty {
-                                Link("View on Strava", destination: URL(string: link)!)
-                                    .font(.caption)
-                                    .foregroundColor(.orange)
+                        Picker("Activity", selection: $activityType) {
+                            ForEach(ActivityType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(type)
                             }
                         }
-                        .padding(.vertical, 6)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            entryToEdit = entry
-                            editedText = entry.text
+                        .pickerStyle(.segmented)
+
+                        Button(action: addEntry) {
+                            Label("Add Entry", systemImage: "plus.circle.fill")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
                         }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
-                    .onDelete(perform: deleteEntries)
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(16)
+                    .shadow(color: Color.primary.opacity(0.15), radius: 8, x: 0, y: 4)
+                    .padding()
+
+                    // Entries List
+                    List {
+                        ForEach(entries) { entry in
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
+                                        .font(.caption)
+                                        .padding(6)
+                                        .background(Color.accentColor.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                                    Spacer()
+
+                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Text(entry.title)
+                                    .font(.headline)
+
+                                Text(entry.text)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+
+                                if let link = entry.stravaLink, !link.isEmpty {
+                                    Link(destination: URL(string: link)!) {
+                                        Label("View on Strava", systemImage: "link")
+                                            .font(.caption)
+                                            .foregroundColor(.orange)
+                                    }
+                                }
+                            }
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                            .shadow(color: Color.primary.opacity(0.12), radius: 6, x: 0, y: 3)
+                            .padding(.vertical, 4)
+                            .listRowBackground(Color.clear)
+                        }
+                        .onDelete(perform: deleteEntries)
+                    }
+                    .listStyle(.plain)
                 }
             }
             .navigationTitle("Skorjo Journal")
@@ -111,6 +135,17 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func icon(for type: ActivityType) -> String {
+        switch type {
+        case .run: return "figure.run"
+        case .walk: return "figure.walk"
+        case .hike: return "figure.hiking"
+        case .bike: return "bicycle"
+        case .swim: return "drop"
+        case .other: return "bolt"
         }
     }
 
