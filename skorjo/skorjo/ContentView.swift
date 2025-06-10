@@ -11,8 +11,7 @@ struct ContentView: View {
     @State private var activityType: ActivityType = .run
     @State private var selectedDate: Date = .now
 
-    @State private var entryToEdit: JournalEntry? = nil
-    @State private var editedText: String = ""
+    @State private var showEntryForm = false
 
     var body: some View {
         NavigationView {
@@ -20,91 +19,107 @@ struct ContentView: View {
                 Color(.systemGroupedBackground).ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Entry Form
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("New Entry")
-                            .font(.title2)
-                            .bold()
-
-                        DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        TextField("Title", text: $title)
-                            .textFieldStyle(.roundedBorder)
-                            .contextMenu { } // Ensures paste support
-
-                        TextEditor(text: $text)
-                            .frame(minHeight: 100)
-                            .padding(6)
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(8)
-
-                        TextField("Strava Link (optional)", text: $stravaLink)
-                            .textFieldStyle(.roundedBorder)
-                            .contextMenu { }
-
-                        Picker("Activity", selection: $activityType) {
-                            ForEach(ActivityType.allCases, id: \.self) { type in
-                                Text(type.rawValue).tag(type)
-                            }
+                    // Toggle Entry Form
+                    Button(action: {
+                        withAnimation {
+                            showEntryForm.toggle()
                         }
-                        .pickerStyle(.segmented)
-
-                        Button(action: addEntry) {
-                            Label("Add Entry", systemImage: "plus.circle.fill")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }) {
+                        Label(showEntryForm ? "Hide Entry Form" : "Add New Entry", systemImage: showEntryForm ? "chevron.up.circle.fill" : "plus.circle.fill")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                            .padding(.horizontal)
                     }
-                    .padding()
-                    .background(Color(.systemBackground))
-                    .cornerRadius(16)
-                    .shadow(color: Color.primary.opacity(0.15), radius: 8, x: 0, y: 4)
-                    .padding()
+                    .padding(.top)
+
+                    // Entry Form
+                    if showEntryForm {
+                        VStack(alignment: .leading, spacing: 12) {
+                            DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            TextField("Title", text: $title)
+                                .textFieldStyle(.roundedBorder)
+
+                            TextEditor(text: $text)
+                                .frame(minHeight: 100)
+                                .padding(6)
+                                .background(Color(.secondarySystemBackground))
+                                .cornerRadius(8)
+
+                            TextField("Strava Link (optional)", text: $stravaLink)
+                                .textFieldStyle(.roundedBorder)
+
+                            Picker("Activity", selection: $activityType) {
+                                ForEach(ActivityType.allCases, id: \.self) { type in
+                                    Text(type.rawValue).tag(type)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            Button(action: addEntry) {
+                                Label("Add Entry", systemImage: "plus.circle.fill")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(16)
+                        .shadow(color: Color.primary.opacity(0.15), radius: 8, x: 0, y: 4)
+                        .padding(.horizontal)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
 
                     // Entries List
                     List {
                         ForEach(entries) { entry in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
-                                        .font(.caption)
-                                        .padding(6)
-                                        .background(Color.accentColor.opacity(0.1))
-                                        .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                                    Spacer()
-
-                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-
-                                Text(entry.title)
-                                    .font(.headline)
-
-                                Text(entry.text)
-                                    .font(.body)
-                                    .foregroundColor(.primary)
-
-                                if let link = entry.stravaLink, !link.isEmpty {
-                                    Link(destination: URL(string: link)!) {
-                                        Label("View on Strava", systemImage: "link")
+                            NavigationLink(destination: JournalEntryDetailView(entry: entry)) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
                                             .font(.caption)
-                                            .foregroundColor(.orange)
+                                            .padding(6)
+                                            .background(Color.accentColor.opacity(0.1))
+                                            .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                                        Spacer()
+
+                                        Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Text(entry.title)
+                                        .font(.headline)
+
+                                    Text(entry.text)
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+
+                                    if let link = entry.stravaLink, !link.isEmpty {
+                                        Link(destination: URL(string: link)!) {
+                                            Label("View on Strava", systemImage: "link")
+                                                .font(.caption)
+                                                .foregroundColor(.orange)
+                                        }
                                     }
                                 }
+                                .padding()
+                                .background(Color(.systemBackground))
+                                .cornerRadius(12)
+                                .shadow(color: Color.primary.opacity(0.12), radius: 6, x: 0, y: 3)
+                                .padding(.vertical, 4)
                             }
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(12)
-                            .shadow(color: Color.primary.opacity(0.12), radius: 6, x: 0, y: 3)
-                            .padding(.vertical, 4)
                             .listRowBackground(Color.clear)
                         }
                         .onDelete(perform: deleteEntries)
@@ -113,28 +128,6 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Skorjo Journal")
-            .sheet(item: $entryToEdit) { entry in
-                NavigationView {
-                    VStack {
-                        TextEditor(text: $editedText)
-                            .padding()
-                            .navigationTitle("Edit Entry")
-                            .navigationBarTitleDisplayMode(.inline)
-                            .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
-                                    Button("Cancel") {
-                                        entryToEdit = nil
-                                    }
-                                }
-                                ToolbarItem(placement: .confirmationAction) {
-                                    Button("Save") {
-                                        updateEntry(entry)
-                                    }
-                                }
-                            }
-                    }
-                }
-            }
         }
     }
 
@@ -180,6 +173,10 @@ struct ContentView: View {
         stravaLink = ""
         activityType = .run
         selectedDate = .now
+
+        withAnimation {
+            showEntryForm = false
+        }
     }
 
     private func deleteEntries(at offsets: IndexSet) {
@@ -187,14 +184,5 @@ struct ContentView: View {
             context.delete(entries[index])
         }
         try? context.save()
-    }
-
-    private func updateEntry(_ entry: JournalEntry) {
-        let trimmed = editedText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.isEmpty {
-            entry.text = trimmed
-            try? context.save()
-        }
-        entryToEdit = nil
     }
 }
