@@ -139,6 +139,7 @@ struct JournalEntryDetailView: View {
         case .bike: return "bicycle"
         case .swim: return "drop"
         case .lift: return "weightlifting"
+        case .reflection: return "brain"
         case .other: return "bolt"
         }
     }

@@ -8,23 +8,28 @@
 import Foundation
 import SwiftData
 
+enum ActivityType: String, Codable, CaseIterable {
+    case run = "Run"
+    case walk = "Walk"
+    case hike = "Hike"
+    case bike = "Bike"
+    case swim = "Swim"
+    case lift = "Lift"
+    case reflection = "Reflection"
+    case other = "Other"
+}
+
 @Model
-class JournalEntry: Identifiable {
-    var id: UUID
+class JournalEntry {
+    @Attribute(.unique) var id: UUID
     var date: Date
     var title: String
     var text: String
     var stravaLink: String?
     var activityType: ActivityType
 
-    init(
-        date: Date = .now,
-        title: String,
-        text: String,
-        stravaLink: String? = nil,
-        activityType: ActivityType = .run
-    ) {
-        self.id = UUID()
+    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run) {
+        self.id = id
         self.date = date
         self.title = title
         self.text = text
@@ -33,12 +38,3 @@ class JournalEntry: Identifiable {
     }
 }
 
-enum ActivityType: String, Codable, CaseIterable {
-    case run = "Run"
-    case walk = "Walk"
-    case hike = "Hike"
-    case lift = "Lift"
-    case bike = "Bike"
-    case swim = "Swim"
-    case other = "Other"
-}
