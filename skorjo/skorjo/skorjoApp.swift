@@ -6,15 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
-struct skorjoApp: App {
-    let persistenceController = PersistenceController.shared
-
+struct SkorjoApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
+        .modelContainer(for: JournalEntry.self)
     }
 }
+
