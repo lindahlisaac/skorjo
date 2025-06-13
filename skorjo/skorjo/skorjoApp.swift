@@ -12,9 +12,8 @@ import SwiftData
 struct SkorjoApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LoadingView() // Show loading screen on fresh launch
         }
         .modelContainer(for: JournalEntry.self)
     }
 }
-
