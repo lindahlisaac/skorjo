@@ -36,6 +36,7 @@ struct ContentView: View {
                     }
                     .tag(2)
             }
+            .tint(Color(red: 0.784, green: 0.635, blue: 0.784)) // lilac accent
 
             // Floating Add Button centered over tab bar
             VStack {
@@ -47,7 +48,7 @@ struct ContentView: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(Color.accentColor)
+                                .fill(Color(red: 0.784, green: 0.635, blue: 0.784)) // lilac accent
                                 .frame(width: 42, height: 42)
 
                             Image(systemName: "plus")
