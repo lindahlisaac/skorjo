@@ -8,55 +8,34 @@
 import SwiftUI
 
 struct EntryTypeSelectorView: View {
-    @Environment(\.dismiss) var dismiss
-
-    let onSelectActivity: () -> Void
-    let onSelectReflection: () -> Void
+    @Binding var showActivityForm: Bool
+    @Binding var showReflectionForm: Bool
+    var onSelectActivity: () -> Void
+    var onSelectReflection: () -> Void
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 32) {
-                Text("What would you like to add?")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .padding(.top, 40)
+        VStack(spacing: 24) {
+            Text("What would you like to add?")
+                .font(.headline)
 
-                Button {
-                    onSelectActivity()
-                } label: {
-                    Label("Activity Entry", systemImage: "figure.run")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                }
-
-                Button {
-                    onSelectReflection()
-                } label: {
-                    Label("Reflection", systemImage: "pencil.and.outline")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .foregroundColor(.primary)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                }
-
-                Spacer()
+            Button(action: onSelectActivity) {
+                Label("Activity Entry", systemImage: "figure.run")
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.accentColor.opacity(0.2))
+                    .cornerRadius(8)
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
+
+            Button(action: onSelectReflection) {
+                Label("Reflection", systemImage: "brain.head.profile")
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.accentColor.opacity(0.2))
+                    .cornerRadius(8)
             }
+
+            Spacer()
         }
+        .padding()
     }
 }

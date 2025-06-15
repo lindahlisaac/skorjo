@@ -23,9 +23,10 @@ struct ContentView: View {
                     }
                     .tag(0)
 
-                Color.clear
+                // Placeholder center tab
+                Text("")
                     .tabItem {
-                        Image(systemName: "plus.circle")
+                        Text("") // Empty to reserve space
                     }
                     .tag(1)
 
@@ -36,7 +37,7 @@ struct ContentView: View {
                     .tag(2)
             }
 
-            // Floating "+" Button
+            // Floating Add Button centered over tab bar
             VStack {
                 Spacer()
                 HStack {
@@ -44,22 +45,28 @@ struct ContentView: View {
                     Button(action: {
                         showEntryTypeSheet = true
                     }) {
-                        Image(systemName: "plus.circle.fill")
-                            .resizable()
-                            .frame(width: 60, height: 60)
-                            .foregroundColor(.accentColor)
-                            .background(Color(.systemBackground))
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
+                        ZStack {
+                            Circle()
+                                .fill(Color.accentColor)
+                                .frame(width: 42, height: 42)
+
+                            Image(systemName: "plus")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(.white)
+                        }
                     }
-                    .offset(y: -20)
-                    Spacer()
+                    .padding(.bottom, 0)
+                    .frame(maxWidth: .infinity)
                 }
+                .padding(.horizontal, UIScreen.main.bounds.width / 2 - 28)
             }
-            .padding(.bottom, 0)
         }
         .sheet(isPresented: $showEntryTypeSheet) {
             EntryTypeSelectorView(
+                showActivityForm: $showActivityForm,
+                showReflectionForm: $showReflectionForm,
                 onSelectActivity: {
                     showEntryTypeSheet = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {

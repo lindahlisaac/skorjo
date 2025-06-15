@@ -1,8 +1,4 @@
 //
-//  Created by Isaac Lindahl on 6/9/25.
-//
-
-//
 //  BrowseEntriesView.swift
 //  skorjo
 //
