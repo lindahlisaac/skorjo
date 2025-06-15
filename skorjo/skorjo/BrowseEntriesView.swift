@@ -1,4 +1,8 @@
 //
+//  Created by Isaac Lindahl on 6/9/25.
+//
+
+//
 //  BrowseEntriesView.swift
 //  skorjo
 //
@@ -13,6 +17,7 @@ struct BrowseEntriesView: View {
     @State private var selectedType: ActivityType? = nil
     @State private var startDate: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     @State private var endDate: Date = .now
+    @State private var searchText: String = ""
 
     var body: some View {
         NavigationView {
@@ -39,23 +44,26 @@ struct BrowseEntriesView: View {
                         VStack(alignment: .leading) {
                             Text(entry.title)
                                 .font(.headline)
-                            Text(entry.date.formatted(date: .abbreviated, time: .omitted))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
                     }
                 }
-                .listStyle(.plain)
+                .searchable(text: $searchText)
             }
             .navigationTitle("Browse Entries")
         }
     }
 
-    var filteredEntries: [JournalEntry] {
+    private var filteredEntries: [JournalEntry] {
         allEntries.filter { entry in
             let matchesType = selectedType == nil || entry.activityType == selectedType
-            let matchesDate = entry.date >= startDate && entry.date <= endDate
-            return matchesType && matchesDate
+            let matchesDate = (entry.date >= startDate) && (entry.date <= endDate)
+            let matchesSearch = searchText.isEmpty ||
+                entry.title.localizedCaseInsensitiveContains(searchText) ||
+                entry.text.localizedCaseInsensitiveContains(searchText)
+            return matchesType && matchesDate && matchesSearch
         }
     }
 }

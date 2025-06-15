@@ -12,7 +12,8 @@ import SwiftData
 struct SkorjoApp: App {
     var body: some Scene {
         WindowGroup {
-            LoadingView() // Show loading screen on fresh launch
+            LoadingView()
+                .font(.system(size: 17, design: .rounded)) // 👈 Applies to all child views
         }
         .modelContainer(for: JournalEntry.self)
     }
