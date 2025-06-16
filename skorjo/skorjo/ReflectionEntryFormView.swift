@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Combine
 
 struct ReflectionEntryFormView: View {
     @Environment(\.modelContext) private var context
@@ -17,33 +18,65 @@ struct ReflectionEntryFormView: View {
     @State private var text: String = ""
     @State private var tag: String = ""
 
+    @FocusState private var focusedField: Field?
+
+    enum Field: Hashable {
+        case title, text, tag
+    }
+
+    private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
+
     var body: some View {
-        Form {
-            Section(header: Text("Date")) {
-                DatePicker("Reflection Date", selection: $date, displayedComponents: .date)
-            }
-
-            Section(header: Text("Title")) {
-                TextField("Title", text: $title)
-            }
-
-            Section(header: Text("Reflection")) {
-                TextEditor(text: $text)
-                    .frame(height: 120)
-            }
-
-            Section(header: Text("Tag")) {
-                TextField("Optional tag (e.g. mindset, gratitude)", text: $tag)
-            }
-
-            Section {
-                Button("Add Reflection") {
-                    addReflection()
+        ZStack {
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture { hideKeyboard() }
+            Form {
+                Section(header: Text("Date").foregroundColor(lilac)) {
+                    DatePicker("Reflection Date", selection: $date, displayedComponents: .date)
+                        .accentColor(lilac)
                 }
-                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+
+                Section(header: Text("Title").foregroundColor(lilac)) {
+                    TextField("Title", text: $title)
+                        .accentColor(lilac)
+                        .focused($focusedField, equals: .title)
+                }
+
+                Section(header: Text("Reflection").foregroundColor(lilac)) {
+                    TextEditor(text: $text)
+                        .frame(height: 120)
+                        .accentColor(lilac)
+                        .focused($focusedField, equals: .text)
+                }
+
+                Section(header: Text("Tag").foregroundColor(lilac)) {
+                    TextField("Optional tag (e.g. mindset, gratitude)", text: $tag)
+                        .accentColor(lilac)
+                        .focused($focusedField, equals: .tag)
+                }
+
+                Section {
+                    Button("Add Reflection") {
+                        addReflection()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(lilac)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                    .font(.headline)
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+            .navigationTitle("New Reflection")
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { hideKeyboard() }
+                }
             }
         }
-        .navigationTitle("New Reflection")
     }
 
     private func addReflection() {

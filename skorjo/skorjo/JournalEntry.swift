@@ -27,14 +27,16 @@ class JournalEntry {
     var text: String
     var stravaLink: String?
     var activityType: ActivityType
+    var feeling: Int? // 1-10, optional for backward compatibility
 
-    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run) {
+    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil) {
         self.id = id
         self.date = date
         self.title = title
         self.text = text
         self.stravaLink = stravaLink
         self.activityType = activityType
+        self.feeling = feeling
     }
 }
 
