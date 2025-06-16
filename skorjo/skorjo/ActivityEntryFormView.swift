@@ -13,6 +13,8 @@ struct ActivityEntryFormView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
+    var entryToEdit: JournalEntry? = nil
+
     @State private var date: Date = .now
     @State private var title: String = ""
     @State private var text: String = ""
@@ -27,6 +29,8 @@ struct ActivityEntryFormView: View {
     }
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
+
+    var isEditing: Bool { entryToEdit != nil }
 
     var body: some View {
         ZStack {
@@ -91,8 +95,8 @@ struct ActivityEntryFormView: View {
                 }
 
                 Section {
-                    Button("Add Entry") {
-                        addEntry()
+                    Button(isEditing ? "Save Changes" : "Add Entry") {
+                        saveOrAddEntry()
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -103,32 +107,55 @@ struct ActivityEntryFormView: View {
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .navigationTitle("New Activity")
+            .navigationTitle(isEditing ? "Edit Activity" : "New Activity")
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
                 }
             }
+            .onAppear {
+                if let entry = entryToEdit {
+                    date = entry.date
+                    title = entry.title
+                    text = entry.text
+                    stravaLink = entry.stravaLink ?? ""
+                    activityType = entry.activityType
+                    feeling = entry.feeling ?? 5
+                }
+            }
         }
     }
 
-    private func addEntry() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let prefixedTitle = formatter.string(from: date) + " - " + title.trimmingCharacters(in: .whitespaces)
+    private func saveOrAddEntry() {
+        if let entry = entryToEdit {
+            // Edit existing
+            entry.date = date
+            entry.title = title
+            entry.text = text
+            entry.stravaLink = stravaLink.isEmpty ? nil : stravaLink
+            entry.activityType = activityType
+            entry.feeling = activityType != .reflection ? feeling : nil
+            try? context.save()
+            dismiss()
+        } else {
+            // Add new
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            let prefixedTitle = formatter.string(from: date) + " - " + title.trimmingCharacters(in: .whitespaces)
 
-        let entry = JournalEntry(
-            date: date,
-            title: prefixedTitle,
-            text: text.trimmingCharacters(in: .whitespacesAndNewlines),
-            stravaLink: stravaLink.isEmpty ? nil : stravaLink,
-            activityType: activityType,
-            feeling: activityType != .reflection ? feeling : nil
-        )
+            let entry = JournalEntry(
+                date: date,
+                title: prefixedTitle,
+                text: text.trimmingCharacters(in: .whitespacesAndNewlines),
+                stravaLink: stravaLink.isEmpty ? nil : stravaLink,
+                activityType: activityType,
+                feeling: activityType != .reflection ? feeling : nil
+            )
 
-        context.insert(entry)
-        try? context.save()
-        dismiss()
+            context.insert(entry)
+            try? context.save()
+            dismiss()
+        }
     }
 }
