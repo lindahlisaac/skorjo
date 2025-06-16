@@ -76,7 +76,11 @@ struct JournalEntryDetailView: View {
             }
         }
         .sheet(isPresented: $showEditSheet) {
-            ActivityEntryFormView(entryToEdit: entry)
+            if entry.activityType == .reflection {
+                ReflectionEntryFormView(entryToEdit: entry)
+            } else {
+                ActivityEntryFormView(entryToEdit: entry)
+            }
         }
     }
 

@@ -13,6 +13,8 @@ struct ReflectionEntryFormView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
+    var entryToEdit: JournalEntry? = nil
+
     @State private var date: Date = .now
     @State private var title: String = ""
     @State private var text: String = ""
@@ -25,6 +27,8 @@ struct ReflectionEntryFormView: View {
     }
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
+
+    var isEditing: Bool { entryToEdit != nil }
 
     var body: some View {
         ZStack {
@@ -57,8 +61,8 @@ struct ReflectionEntryFormView: View {
                 }
 
                 Section {
-                    Button("Add Reflection") {
-                        addReflection()
+                    Button(isEditing ? "Save Changes" : "Add Reflection") {
+                        saveOrAddReflection()
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -69,31 +73,54 @@ struct ReflectionEntryFormView: View {
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .navigationTitle("New Reflection")
+            .navigationTitle(isEditing ? "Edit Reflection" : "New Reflection")
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
                 }
             }
+            .onAppear {
+                if let entry = entryToEdit {
+                    date = entry.date
+                    title = entry.title
+                    // Parse tag from text if present
+                    if let tagRange = entry.text.range(of: "\n\n#") {
+                        text = String(entry.text[..<tagRange.lowerBound])
+                        tag = String(entry.text[tagRange.upperBound...])
+                    } else {
+                        text = entry.text
+                        tag = ""
+                    }
+                }
+            }
         }
     }
 
-    private func addReflection() {
+    private func saveOrAddReflection() {
         let fullText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalTag = tag.trimmingCharacters(in: .whitespacesAndNewlines)
         let taggedText = fullText + (finalTag.isEmpty ? "" : "\n\n#\(finalTag)")
 
-        let entry = JournalEntry(
-            date: date,
-            title: title.trimmingCharacters(in: .whitespaces),
-            text: taggedText,
-            stravaLink: nil,
-            activityType: .reflection
-        )
-
-        context.insert(entry)
-        try? context.save()
-        dismiss()
+        if let entry = entryToEdit {
+            entry.date = date
+            entry.title = title.trimmingCharacters(in: .whitespaces)
+            entry.text = taggedText
+            entry.stravaLink = nil
+            entry.activityType = .reflection
+            try? context.save()
+            dismiss()
+        } else {
+            let entry = JournalEntry(
+                date: date,
+                title: title.trimmingCharacters(in: .whitespaces),
+                text: taggedText,
+                stravaLink: nil,
+                activityType: .reflection
+            )
+            context.insert(entry)
+            try? context.save()
+            dismiss()
+        }
     }
 }
