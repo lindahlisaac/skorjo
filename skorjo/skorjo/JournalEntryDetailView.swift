@@ -44,6 +44,8 @@ struct JournalEntryDetailView: View {
                         .background(Color.accentColor.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
+                .padding(.bottom, 4)
+                .listRowSeparator(.hidden)
                 Text(entry.title)
                     .font(.headline)
                 if entry.activityType != .injury {

@@ -75,6 +75,7 @@ struct JournalHomeView: View {
                         .padding(.vertical, 4)
                     }
                     .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
                 .onDelete(perform: deleteEntries)
             }
