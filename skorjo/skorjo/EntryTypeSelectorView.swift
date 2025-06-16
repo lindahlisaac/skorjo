@@ -16,29 +16,37 @@ struct EntryTypeSelectorView: View {
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
     var body: some View {
+        let buttonSize = UIScreen.main.bounds.width * 0.4
         VStack(spacing: 24) {
             Text("What would you like to add?")
                 .font(.headline)
                 .foregroundColor(lilac)
-
-            Button(action: onSelectActivity) {
-                Label("Activity Entry", systemImage: "figure.run")
+            HStack(spacing: 24) {
+                Button(action: onSelectActivity) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "figure.run")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Activity")
+                            .font(.headline)
+                    }
                     .foregroundColor(lilac)
-                    .padding()
-                    .frame(maxWidth: .infinity)
+                    .frame(width: buttonSize, height: buttonSize)
                     .background(lilac.opacity(0.2))
-                    .cornerRadius(8)
-            }
-
-            Button(action: onSelectReflection) {
-                Label("Reflection", systemImage: "brain.head.profile")
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectReflection) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Reflection")
+                            .font(.headline)
+                    }
                     .foregroundColor(lilac)
-                    .padding()
-                    .frame(maxWidth: .infinity)
+                    .frame(width: buttonSize, height: buttonSize)
                     .background(lilac.opacity(0.2))
-                    .cornerRadius(8)
+                    .cornerRadius(16)
+                }
             }
-
             Spacer()
         }
         .padding()
