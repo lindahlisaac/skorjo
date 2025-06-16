@@ -12,9 +12,9 @@ import SwiftData
 struct SkorjoApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LoadingView()
+                .font(.system(size: 17, design: .rounded)) // 👈 Applies to all child views
         }
         .modelContainer(for: JournalEntry.self)
     }
 }
-

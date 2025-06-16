@@ -4,6 +4,7 @@ import SwiftData
 struct JournalHomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \JournalEntry.date, order: .reverse, animation: .default) private var entries: [JournalEntry]
+    @State private var showExportSheet = false
 
     var body: some View {
         NavigationView {
@@ -52,6 +53,16 @@ struct JournalHomeView: View {
             }
             .listStyle(.plain)
             .navigationTitle("Skorjo Journal")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: { showExportSheet = true }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
+            .sheet(isPresented: $showExportSheet) {
+                ExportView()
+            }
         }
     }
 
