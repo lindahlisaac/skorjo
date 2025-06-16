@@ -7,72 +7,155 @@
 
 import SwiftUI
 import SwiftData
+import Combine
 
 struct ActivityEntryFormView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+
+    var entryToEdit: JournalEntry? = nil
 
     @State private var date: Date = .now
     @State private var title: String = ""
     @State private var text: String = ""
     @State private var stravaLink: String = ""
     @State private var activityType: ActivityType = .run
+    @State private var feeling: Int = 5
 
-    var body: some View {
-        Form {
-            Section(header: Text("Date")) {
-                DatePicker("Entry Date", selection: $date, displayedComponents: .date)
-            }
+    @FocusState private var focusedField: Field?
 
-            Section(header: Text("Title")) {
-                TextField("Title", text: $title)
-            }
-
-            Section(header: Text("Details")) {
-                TextEditor(text: $text)
-                    .frame(height: 120)
-            }
-
-            Section(header: Text("Strava Link")) {
-                TextField("https://www.strava.com/...", text: $stravaLink)
-                    .keyboardType(.URL)
-                    .autocapitalization(.none)
-            }
-
-            Section(header: Text("Activity Type")) {
-                Picker("Select Type", selection: $activityType) {
-                    ForEach(ActivityType.allCases, id: \.self) { type in
-                        Text(type.rawValue).tag(type)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-
-            Section {
-                Button("Add Entry") {
-                    addEntry()
-                }
-                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-        }
-        .navigationTitle("New Activity")
+    enum Field: Hashable {
+        case title, text, stravaLink
     }
 
-    private func addEntry() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let prefixedTitle = formatter.string(from: date) + " - " + title.trimmingCharacters(in: .whitespaces)
+    private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
-        let entry = JournalEntry(
-            date: date,
-            title: prefixedTitle,
-            text: text.trimmingCharacters(in: .whitespacesAndNewlines),
-            stravaLink: stravaLink.isEmpty ? nil : stravaLink,
-            activityType: activityType
-        )
+    var isEditing: Bool { entryToEdit != nil }
 
-        context.insert(entry)
-        try? context.save()
-        dismiss()
+    var body: some View {
+        ZStack {
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture { hideKeyboard() }
+            Form {
+                Section(header: Text("Date").foregroundColor(lilac)) {
+                    DatePicker("Entry Date", selection: $date, displayedComponents: .date)
+                        .accentColor(lilac)
+                }
+
+                Section(header: Text("Title").foregroundColor(lilac)) {
+                    TextField("Title", text: $title)
+                        .accentColor(lilac)
+                        .focused($focusedField, equals: .title)
+                }
+
+                Section(header: Text("Details").foregroundColor(lilac)) {
+                    TextEditor(text: $text)
+                        .frame(height: 120)
+                        .accentColor(lilac)
+                        .focused($focusedField, equals: .text)
+                }
+
+                Section(header: Text("Strava Link").foregroundColor(lilac)) {
+                    TextField("https://www.strava.com/...", text: $stravaLink)
+                        .keyboardType(.URL)
+                        .autocapitalization(.none)
+                        .accentColor(lilac)
+                        .focused($focusedField, equals: .stravaLink)
+                }
+
+                Section(header: Text("Activity Type").foregroundColor(lilac)) {
+                    Picker("Select Type", selection: $activityType) {
+                        ForEach(ActivityType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .accentColor(lilac)
+                }
+
+                if activityType != .reflection {
+                    Section(header: Text("How do you feel?").foregroundColor(lilac)) {
+                        VStack(alignment: .leading) {
+                            Slider(value: Binding(
+                                get: { Double(feeling) },
+                                set: { feeling = Int($0) }
+                            ), in: 1...10, step: 1)
+                            .accentColor(lilac)
+                            HStack {
+                                Text("1")
+                                Spacer()
+                                Text("10")
+                            }
+                            Text("Feeling: \(feeling)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                Section {
+                    Button(isEditing ? "Save Changes" : "Add Entry") {
+                        saveOrAddEntry()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(lilac)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                    .font(.headline)
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+            .navigationTitle(isEditing ? "Edit Activity" : "New Activity")
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { hideKeyboard() }
+                }
+            }
+            .onAppear {
+                if let entry = entryToEdit {
+                    date = entry.date
+                    title = entry.title
+                    text = entry.text
+                    stravaLink = entry.stravaLink ?? ""
+                    activityType = entry.activityType
+                    feeling = entry.feeling ?? 5
+                }
+            }
+        }
+    }
+
+    private func saveOrAddEntry() {
+        if let entry = entryToEdit {
+            // Edit existing
+            entry.date = date
+            entry.title = title
+            entry.text = text
+            entry.stravaLink = stravaLink.isEmpty ? nil : stravaLink
+            entry.activityType = activityType
+            entry.feeling = activityType != .reflection ? feeling : nil
+            try? context.save()
+            dismiss()
+        } else {
+            // Add new
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            let prefixedTitle = formatter.string(from: date) + " - " + title.trimmingCharacters(in: .whitespaces)
+
+            let entry = JournalEntry(
+                date: date,
+                title: prefixedTitle,
+                text: text.trimmingCharacters(in: .whitespacesAndNewlines),
+                stravaLink: stravaLink.isEmpty ? nil : stravaLink,
+                activityType: activityType,
+                feeling: activityType != .reflection ? feeling : nil
+            )
+
+            context.insert(entry)
+            try? context.save()
+            dismiss()
+        }
     }
 }

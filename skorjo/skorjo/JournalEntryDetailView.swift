@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Combine
 
 struct JournalEntryDetailView: View {
     @Environment(\.modelContext) private var context
@@ -20,62 +21,63 @@ struct JournalEntryDetailView: View {
     @State private var editedStravaLink: String = ""
     @State private var editedActivityType: ActivityType = .run
     @State private var editedDate: Date = .now
+    @State private var editedFeeling: Int = 5
+    @FocusState private var focusedField: Field?
+    @State private var showEditSheet = false
+
+    enum Field: Hashable {
+        case title, text, stravaLink
+    }
+
+    private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
     var body: some View {
         Form {
-            if isEditing {
-                Section(header: Text("Date")) {
-                    DatePicker("Date", selection: $editedDate, displayedComponents: .date)
-                }
-
-                Section(header: Text("Title")) {
-                    TextField("Title", text: $editedTitle)
-                }
-
-                Section(header: Text("Entry")) {
-                    TextEditor(text: $editedText)
-                        .frame(minHeight: 120)
-                }
-
-                Section(header: Text("Strava Link")) {
-                    TextField("Strava Link", text: $editedStravaLink)
-                        .keyboardType(.URL)
-                        .autocapitalization(.none)
-                }
-
-                Section(header: Text("Activity Type")) {
-                    Picker("Activity", selection: $editedActivityType) {
-                        ForEach(ActivityType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-            } else {
-                Section {
+            Section {
+                HStack {
                     Text(entry.date.formatted(date: .abbreviated, time: .shortened))
                         .foregroundColor(.secondary)
-
-                    Text(entry.title)
-                        .font(.headline)
-
+                    Spacer()
+                    Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
+                        .font(.caption)
+                        .padding(8)
+                        .background(Color.accentColor.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .padding(.bottom, 4)
+                .listRowSeparator(.hidden)
+                Text(entry.title)
+                    .font(.headline)
+                if entry.activityType != .injury {
                     Text(entry.text)
                         .padding(.top, 4)
-
-                    if let link = entry.stravaLink,
-                       let url = URL(string: link), !link.isEmpty {
-                        Link("View on Strava", destination: url)
-                            .padding(.top, 4)
-                    }
-
+                }
+                if let link = entry.stravaLink,
+                   let url = URL(string: link), !link.isEmpty {
+                    Link("View on Strava", destination: url)
+                        .padding(.top, 4)
+                }
+                if entry.activityType != .reflection, let feeling = entry.feeling {
                     HStack {
                         Spacer()
-                        Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
+                        Text("Feeling: \(feeling)")
                             .font(.caption)
-                            .padding(8)
-                            .background(Color.accentColor.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
                         Spacer()
+                    }
+                }
+                if entry.activityType == .injury, let checkIns = entry.injuryCheckIns, !checkIns.isEmpty {
+                    Section(header: Text("Check-Ins").foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))) {
+                        ForEach(checkIns.sorted(by: { $0.date > $1.date }), id: \ .self) { checkIn in
+                            HStack {
+                                Text(checkIn.date.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.subheadline)
+                                Spacer()
+                                Text("Pain: \(checkIn.pain)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
                 }
             }
@@ -83,28 +85,23 @@ struct JournalEntryDetailView: View {
         .navigationTitle("Journal Entry")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if isEditing {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveChanges()
-                    }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit") {
+                    showEditSheet = true
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        isEditing = false
-                    }
-                }
-            } else {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Edit") {
-                        loadValues()
-                        isEditing = true
-                    }
-                }
+                .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
             }
         }
-        .onAppear {
-            loadValues()
+        .sheet(isPresented: $showEditSheet) {
+            if entry.activityType == .reflection {
+                ReflectionEntryFormView(entryToEdit: entry)
+            } else if entry.activityType == .injury {
+                InjuryEntryFormView(entryToEdit: entry)
+            } else if entry.activityType == .weeklyRecap {
+                WeeklyRecapEntryFormView(entryToEdit: entry)
+            } else {
+                ActivityEntryFormView(entryToEdit: entry)
+            }
         }
     }
 
@@ -114,6 +111,7 @@ struct JournalEntryDetailView: View {
         editedStravaLink = entry.stravaLink ?? ""
         editedActivityType = entry.activityType
         editedDate = entry.date
+        editedFeeling = entry.feeling ?? 5
     }
 
     private func saveChanges() {
@@ -122,7 +120,7 @@ struct JournalEntryDetailView: View {
         entry.stravaLink = editedStravaLink.isEmpty ? nil : editedStravaLink
         entry.activityType = editedActivityType
         entry.date = editedDate
-
+        entry.feeling = editedActivityType != .reflection ? editedFeeling : nil
         do {
             try context.save()
             isEditing = false
@@ -141,6 +139,12 @@ struct JournalEntryDetailView: View {
         case .lift: return "weightlifting"
         case .reflection: return "brain"
         case .other: return "bolt"
+        case .weeklyRecap: return "calendar.badge.clock"
+        case .injury: return "cross.case"
         }
+    }
+
+    private func hideKeyboard() {
+        // Implementation of hideKeyboard function
     }
 }

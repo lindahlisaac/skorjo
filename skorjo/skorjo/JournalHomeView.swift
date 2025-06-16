@@ -9,7 +9,7 @@ struct JournalHomeView: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(entries) { entry in
+                ForEach(sortedEntries) { entry in
                     NavigationLink(destination: JournalEntryDetailView(entry: entry)) {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
@@ -21,13 +21,40 @@ struct JournalHomeView: View {
 
                                 Spacer()
 
-                                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                if entry.activityType == .weeklyRecap, let endDate = entry.endDate {
+                                    let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
+                                    Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                } else if entry.activityType == .injury, let injuryStart = entry.injuryStartDate {
+                                    Text("Started: \(injuryStart.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                } else {
+                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
                             }
 
-                            Text(entry.title)
-                                .font(.headline)
+                            if entry.activityType == .injury {
+                                Text(entry.injuryName ?? "Injury")
+                                    .font(.headline)
+                                if let checkIn = entry.injuryCheckIns?.sorted(by: { $0.date > $1.date }).first {
+                                    Text("Last Check-In: \(checkIn.date.formatted(date: .abbreviated, time: .omitted)), Pain: \(checkIn.pain)")
+                                        .font(.caption)
+                                        .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                }
+                            } else {
+                                Text(entry.title)
+                                    .font(.headline)
+
+                                if entry.activityType == .weeklyRecap, let weekFeeling = entry.weekFeeling {
+                                    Text("Week Feeling: \(weekFeeling)")
+                                        .font(.caption)
+                                        .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                }
+                            }
 
                             Text(entry.text)
                                 .font(.body)
@@ -48,6 +75,7 @@ struct JournalHomeView: View {
                         .padding(.vertical, 4)
                     }
                     .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
                 .onDelete(perform: deleteEntries)
             }
@@ -66,6 +94,14 @@ struct JournalHomeView: View {
         }
     }
 
+    private var sortedEntries: [JournalEntry] {
+        entries.sorted {
+            let lhsDate = $0.activityType == .weeklyRecap ? $0.endDate ?? $0.date : $0.date
+            let rhsDate = $1.activityType == .weeklyRecap ? $1.endDate ?? $1.date : $1.date
+            return lhsDate > rhsDate
+        }
+    }
+
     private func icon(for type: ActivityType) -> String {
         switch type {
         case .run: return "figure.run"
@@ -76,12 +112,17 @@ struct JournalHomeView: View {
         case .lift: return "dumbbell"
         case .reflection: return "brain"
         case .other: return "bolt"
+        case .weeklyRecap: return "calendar.badge.clock"
+        case .injury: return "cross.case"
         }
     }
 
     private func deleteEntries(at offsets: IndexSet) {
         for index in offsets {
-            context.delete(entries[index])
+            let entryToDelete = sortedEntries[index]
+            if let originalIndex = entries.firstIndex(where: { $0.id == entryToDelete.id }) {
+                context.delete(entries[originalIndex])
+            }
         }
         try? context.save()
     }

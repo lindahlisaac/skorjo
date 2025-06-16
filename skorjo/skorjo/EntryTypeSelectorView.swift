@@ -12,33 +12,68 @@ struct EntryTypeSelectorView: View {
     @Binding var showReflectionForm: Bool
     var onSelectActivity: () -> Void
     var onSelectReflection: () -> Void
+    var onSelectWeeklyRecap: () -> Void
+    var onSelectInjury: () -> Void
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
     var body: some View {
+        let buttonSize = UIScreen.main.bounds.width * 0.4
+        let columns = [GridItem(.flexible()), GridItem(.flexible())]
         VStack(spacing: 24) {
             Text("What would you like to add?")
                 .font(.headline)
                 .foregroundColor(lilac)
-
-            Button(action: onSelectActivity) {
-                Label("Activity Entry", systemImage: "figure.run")
+            LazyVGrid(columns: columns, spacing: 24) {
+                Button(action: onSelectActivity) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "figure.run")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Activity")
+                            .font(.headline)
+                    }
                     .foregroundColor(lilac)
-                    .padding()
-                    .frame(maxWidth: .infinity)
+                    .frame(width: buttonSize, height: buttonSize)
                     .background(lilac.opacity(0.2))
-                    .cornerRadius(8)
-            }
-
-            Button(action: onSelectReflection) {
-                Label("Reflection", systemImage: "brain.head.profile")
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectReflection) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Reflection")
+                            .font(.headline)
+                    }
                     .foregroundColor(lilac)
-                    .padding()
-                    .frame(maxWidth: .infinity)
+                    .frame(width: buttonSize, height: buttonSize)
                     .background(lilac.opacity(0.2))
-                    .cornerRadius(8)
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectWeeklyRecap) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Weekly Recap")
+                            .font(.headline)
+                    }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectInjury) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "cross.case")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Injury")
+                            .font(.headline)
+                    }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
+                }
             }
-
             Spacer()
         }
         .padding()
