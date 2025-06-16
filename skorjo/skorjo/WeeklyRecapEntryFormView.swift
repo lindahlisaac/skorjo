@@ -6,6 +6,8 @@ struct WeeklyRecapEntryFormView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
+    var entryToEdit: JournalEntry? = nil
+
     @State private var endDate: Date = .now
     @State private var title: String = ""
     @State private var text: String = ""
@@ -18,6 +20,8 @@ struct WeeklyRecapEntryFormView: View {
     }
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
+
+    var isEditing: Bool { entryToEdit != nil }
 
     var startDate: Date {
         Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
@@ -71,8 +75,8 @@ struct WeeklyRecapEntryFormView: View {
                     }
                 }
                 Section {
-                    Button("Add Weekly Recap") {
-                        addWeeklyRecap()
+                    Button(isEditing ? "Save Changes" : "Add Weekly Recap") {
+                        saveOrAddWeeklyRecap()
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -83,32 +87,58 @@ struct WeeklyRecapEntryFormView: View {
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .navigationTitle("New Weekly Recap")
+            .navigationTitle(isEditing ? "Edit Weekly Recap" : "New Weekly Recap")
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
                 }
             }
+            .onAppear {
+                if let entry = entryToEdit {
+                    endDate = entry.endDate ?? .now
+                    title = entry.title
+                    // Parse tag from text if present
+                    if let tagRange = entry.text.range(of: "\n\n#") {
+                        text = String(entry.text[..<tagRange.lowerBound])
+                        tag = String(entry.text[tagRange.upperBound...])
+                    } else {
+                        text = entry.text
+                        tag = ""
+                    }
+                    weekFeeling = entry.weekFeeling ?? 5
+                }
+            }
         }
     }
 
-    private func addWeeklyRecap() {
+    private func saveOrAddWeeklyRecap() {
         let fullText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let finalTag = tag.trimmingCharacters(in: .whitespacesAndNewlines)
         let taggedText = fullText + (finalTag.isEmpty ? "" : "\n\n#\(finalTag)")
-        let entry = JournalEntry(
-            date: startDate,
-            title: title.trimmingCharacters(in: .whitespaces),
-            text: taggedText,
-            stravaLink: nil,
-            activityType: .weeklyRecap,
-            feeling: nil,
-            endDate: endDate,
-            weekFeeling: weekFeeling
-        )
-        context.insert(entry)
-        try? context.save()
-        dismiss()
+        if let entry = entryToEdit {
+            entry.endDate = endDate
+            entry.title = title.trimmingCharacters(in: .whitespaces)
+            entry.text = taggedText
+            entry.activityType = .weeklyRecap
+            entry.date = startDate
+            entry.weekFeeling = weekFeeling
+            try? context.save()
+            dismiss()
+        } else {
+            let entry = JournalEntry(
+                date: startDate,
+                title: title.trimmingCharacters(in: .whitespaces),
+                text: taggedText,
+                stravaLink: nil,
+                activityType: .weeklyRecap,
+                feeling: nil,
+                endDate: endDate,
+                weekFeeling: weekFeeling
+            )
+            context.insert(entry)
+            try? context.save()
+            dismiss()
+        }
     }
 } 

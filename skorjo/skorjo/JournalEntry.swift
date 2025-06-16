@@ -18,6 +18,12 @@ enum ActivityType: String, Codable, CaseIterable {
     case reflection = "Reflection"
     case other = "Other"
     case weeklyRecap = "Weekly Recap"
+    case injury = "Injury"
+}
+
+struct InjuryCheckIn: Codable, Hashable {
+    var date: Date
+    var pain: Int
 }
 
 @Model
@@ -31,8 +37,11 @@ class JournalEntry {
     var feeling: Int? // 1-10, optional for backward compatibility
     var endDate: Date? // For weekly recap
     var weekFeeling: Int? // For weekly recap
+    var injuryName: String?
+    var injuryStartDate: Date?
+    var injuryCheckIns: [InjuryCheckIn]?
 
-    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil) {
+    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil, injuryName: String? = nil, injuryStartDate: Date? = nil, injuryCheckIns: [InjuryCheckIn]? = nil) {
         self.id = id
         self.date = date
         self.title = title
@@ -42,6 +51,9 @@ class JournalEntry {
         self.feeling = feeling
         self.endDate = endDate
         self.weekFeeling = weekFeeling
+        self.injuryName = injuryName
+        self.injuryStartDate = injuryStartDate
+        self.injuryCheckIns = injuryCheckIns
     }
 }
 

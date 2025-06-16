@@ -13,6 +13,7 @@ struct EntryTypeSelectorView: View {
     var onSelectActivity: () -> Void
     var onSelectReflection: () -> Void
     var onSelectWeeklyRecap: () -> Void
+    var onSelectInjury: () -> Void
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
@@ -53,6 +54,18 @@ struct EntryTypeSelectorView: View {
                         Image(systemName: "calendar.badge.clock")
                             .font(.system(size: 32, weight: .medium))
                         Text("Weekly Recap")
+                            .font(.headline)
+                    }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectInjury) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "cross.case")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Injury")
                             .font(.headline)
                     }
                     .foregroundColor(lilac)

@@ -38,22 +38,37 @@ struct BrowseEntriesView: View {
                 List(filteredEntries) { entry in
                     NavigationLink(destination: JournalEntryDetailView(entry: entry)) {
                         VStack(alignment: .leading) {
-                            Text(entry.title)
-                                .font(.headline)
-                            if entry.activityType == .weeklyRecap, let endDate = entry.endDate {
-                                let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
-                                Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                if let weekFeeling = entry.weekFeeling {
-                                    Text("Week Feeling: \(weekFeeling)")
+                            if entry.activityType == .injury {
+                                Text(entry.injuryName ?? "Injury")
+                                    .font(.headline)
+                                if let injuryStart = entry.injuryStartDate {
+                                    Text("Started: \(injuryStart.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                                if let checkIn = entry.injuryCheckIns?.sorted(by: { $0.date > $1.date }).first {
+                                    Text("Last Check-In: \(checkIn.date.formatted(date: .abbreviated, time: .omitted)), Pain: \(checkIn.pain)")
                                         .font(.caption)
                                         .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
                                 }
                             } else {
-                                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
+                                Text(entry.title)
+                                    .font(.headline)
+                                if entry.activityType == .weeklyRecap, let endDate = entry.endDate {
+                                    let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
+                                    Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                    if let weekFeeling = entry.weekFeeling {
+                                        Text("Week Feeling: \(weekFeeling)")
+                                            .font(.caption)
+                                            .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                    }
+                                } else {
+                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
                             }
                         }
                     }

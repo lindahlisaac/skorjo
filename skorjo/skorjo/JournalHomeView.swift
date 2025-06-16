@@ -26,6 +26,10 @@ struct JournalHomeView: View {
                                     Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
                                         .font(.caption2)
                                         .foregroundColor(.secondary)
+                                } else if entry.activityType == .injury, let injuryStart = entry.injuryStartDate {
+                                    Text("Started: \(injuryStart.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
                                 } else {
                                     Text(entry.date.formatted(date: .abbreviated, time: .shortened))
                                         .font(.caption2)
@@ -33,13 +37,23 @@ struct JournalHomeView: View {
                                 }
                             }
 
-                            Text(entry.title)
-                                .font(.headline)
+                            if entry.activityType == .injury {
+                                Text(entry.injuryName ?? "Injury")
+                                    .font(.headline)
+                                if let checkIn = entry.injuryCheckIns?.sorted(by: { $0.date > $1.date }).first {
+                                    Text("Last Check-In: \(checkIn.date.formatted(date: .abbreviated, time: .omitted)), Pain: \(checkIn.pain)")
+                                        .font(.caption)
+                                        .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                }
+                            } else {
+                                Text(entry.title)
+                                    .font(.headline)
 
-                            if entry.activityType == .weeklyRecap, let weekFeeling = entry.weekFeeling {
-                                Text("Week Feeling: \(weekFeeling)")
-                                    .font(.caption)
-                                    .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                if entry.activityType == .weeklyRecap, let weekFeeling = entry.weekFeeling {
+                                    Text("Week Feeling: \(weekFeeling)")
+                                        .font(.caption)
+                                        .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                }
                             }
 
                             Text(entry.text)
@@ -98,6 +112,7 @@ struct JournalHomeView: View {
         case .reflection: return "brain"
         case .other: return "bolt"
         case .weeklyRecap: return "calendar.badge.clock"
+        case .injury: return "cross.case"
         }
     }
 

@@ -34,25 +34,26 @@ struct JournalEntryDetailView: View {
     var body: some View {
         Form {
             Section {
-                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                    .foregroundColor(.secondary)
-                Text(entry.title)
-                    .font(.headline)
-                Text(entry.text)
-                    .padding(.top, 4)
-                if let link = entry.stravaLink,
-                   let url = URL(string: link), !link.isEmpty {
-                    Link("View on Strava", destination: url)
-                        .padding(.top, 4)
-                }
                 HStack {
+                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                        .foregroundColor(.secondary)
                     Spacer()
                     Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
                         .font(.caption)
                         .padding(8)
                         .background(Color.accentColor.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 8))
-                    Spacer()
+                }
+                Text(entry.title)
+                    .font(.headline)
+                if entry.activityType != .injury {
+                    Text(entry.text)
+                        .padding(.top, 4)
+                }
+                if let link = entry.stravaLink,
+                   let url = URL(string: link), !link.isEmpty {
+                    Link("View on Strava", destination: url)
+                        .padding(.top, 4)
                 }
                 if entry.activityType != .reflection, let feeling = entry.feeling {
                     HStack {
@@ -61,6 +62,20 @@ struct JournalEntryDetailView: View {
                             .font(.caption)
                             .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
                         Spacer()
+                    }
+                }
+                if entry.activityType == .injury, let checkIns = entry.injuryCheckIns, !checkIns.isEmpty {
+                    Section(header: Text("Check-Ins").foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))) {
+                        ForEach(checkIns.sorted(by: { $0.date > $1.date }), id: \ .self) { checkIn in
+                            HStack {
+                                Text(checkIn.date.formatted(date: .abbreviated, time: .omitted))
+                                    .font(.subheadline)
+                                Spacer()
+                                Text("Pain: \(checkIn.pain)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
                 }
             }
@@ -78,6 +93,10 @@ struct JournalEntryDetailView: View {
         .sheet(isPresented: $showEditSheet) {
             if entry.activityType == .reflection {
                 ReflectionEntryFormView(entryToEdit: entry)
+            } else if entry.activityType == .injury {
+                InjuryEntryFormView(entryToEdit: entry)
+            } else if entry.activityType == .weeklyRecap {
+                WeeklyRecapEntryFormView(entryToEdit: entry)
             } else {
                 ActivityEntryFormView(entryToEdit: entry)
             }
@@ -119,6 +138,7 @@ struct JournalEntryDetailView: View {
         case .reflection: return "brain"
         case .other: return "bolt"
         case .weeklyRecap: return "calendar.badge.clock"
+        case .injury: return "cross.case"
         }
     }
 

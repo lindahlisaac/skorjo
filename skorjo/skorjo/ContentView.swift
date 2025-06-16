@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showActivityForm = false
     @State private var showReflectionForm = false
     @State private var showWeeklyRecapForm = false
+    @State private var showInjuryForm = false
 
     var body: some View {
         ZStack {
@@ -86,6 +87,12 @@ struct ContentView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         showWeeklyRecapForm = true
                     }
+                },
+                onSelectInjury: {
+                    showEntryTypeSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showInjuryForm = true
+                    }
                 }
             )
         }
@@ -97,6 +104,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showWeeklyRecapForm) {
             WeeklyRecapEntryFormView()
+        }
+        .sheet(isPresented: $showInjuryForm) {
+            InjuryEntryFormView()
         }
     }
 }
