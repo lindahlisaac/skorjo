@@ -118,6 +118,7 @@ struct JournalEntryDetailView: View {
         case .lift: return "weightlifting"
         case .reflection: return "brain"
         case .other: return "bolt"
+        case .weeklyRecap: return "calendar.badge.clock"
         }
     }
 

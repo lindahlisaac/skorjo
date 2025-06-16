@@ -40,9 +40,21 @@ struct BrowseEntriesView: View {
                         VStack(alignment: .leading) {
                             Text(entry.title)
                                 .font(.headline)
-                            Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                            if entry.activityType == .weeklyRecap, let endDate = entry.endDate {
+                                let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
+                                Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                if let weekFeeling = entry.weekFeeling {
+                                    Text("Week Feeling: \(weekFeeling)")
+                                        .font(.caption)
+                                        .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                }
+                            } else {
+                                Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
                         }
                     }
                 }

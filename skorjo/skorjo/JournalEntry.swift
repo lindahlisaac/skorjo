@@ -17,6 +17,7 @@ enum ActivityType: String, Codable, CaseIterable {
     case lift = "Lift"
     case reflection = "Reflection"
     case other = "Other"
+    case weeklyRecap = "Weekly Recap"
 }
 
 @Model
@@ -28,8 +29,10 @@ class JournalEntry {
     var stravaLink: String?
     var activityType: ActivityType
     var feeling: Int? // 1-10, optional for backward compatibility
+    var endDate: Date? // For weekly recap
+    var weekFeeling: Int? // For weekly recap
 
-    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil) {
+    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil) {
         self.id = id
         self.date = date
         self.title = title
@@ -37,6 +40,8 @@ class JournalEntry {
         self.stravaLink = stravaLink
         self.activityType = activityType
         self.feeling = feeling
+        self.endDate = endDate
+        self.weekFeeling = weekFeeling
     }
 }
 
