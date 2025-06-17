@@ -13,8 +13,7 @@ import Charts
 struct JournalEntryDetailView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-
-    @Bindable var entry: JournalEntry
+    var entry: JournalEntry
 
     @State private var isEditing = false
     @State private var editedTitle: String = ""
@@ -25,6 +24,9 @@ struct JournalEntryDetailView: View {
     @State private var editedFeeling: Int = 5
     @FocusState private var focusedField: Field?
     @State private var showEditSheet = false
+    @State private var showAddCheckInSheet = false
+    @State private var newCheckInDate = Date()
+    @State private var newCheckInPain = 5
 
     enum Field: Hashable {
         case title, text, stravaLink
@@ -127,8 +129,24 @@ struct JournalEntryDetailView: View {
                         }
                     }
                     
-                    Section(header: Text("Check-Ins").foregroundColor(lilac)) {
-                        ForEach(checkIns.sorted(by: { $0.date > $1.date }), id: \.self) { checkIn in
+                    Section(header:
+                        HStack {
+                            Text("Check-Ins").foregroundColor(lilac)
+                            Spacer()
+                            Button(action: {
+                                newCheckInDate = Date()
+                                newCheckInPain = 5
+                                showAddCheckInSheet = true
+                            }) {
+                                Label("Add Check-In", systemImage: "plus.circle")
+                                    .labelStyle(IconOnlyLabelStyle())
+                            }
+                            .foregroundColor(lilac)
+                        }
+                    ) {
+                        let sortedCheckIns = checkIns.sorted(by: { $0.date > $1.date })
+                        ForEach(sortedCheckIns.indices, id: \ .self) { idx in
+                            let checkIn = sortedCheckIns[idx]
                             HStack {
                                 Text(checkIn.date.formatted(date: .abbreviated, time: .omitted))
                                     .font(.subheadline)
@@ -137,6 +155,9 @@ struct JournalEntryDetailView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
+                        }
+                        .onDelete { offsets in
+                            deleteCheckIns(at: offsets, from: sortedCheckIns)
                         }
                     }
                 }
@@ -161,6 +182,54 @@ struct JournalEntryDetailView: View {
                 WeeklyRecapEntryFormView(entryToEdit: entry)
             } else {
                 ActivityEntryFormView(entryToEdit: entry)
+            }
+        }
+        .sheet(isPresented: $showAddCheckInSheet) {
+            NavigationView {
+                Form {
+                    Section(header: Text("Date").foregroundColor(lilac)) {
+                        DatePicker("Check-In Date", selection: $newCheckInDate, displayedComponents: .date)
+                            .accentColor(lilac)
+                    }
+                    Section(header: Text("Pain Level").foregroundColor(lilac)) {
+                        Slider(value: Binding(
+                            get: { Double(newCheckInPain) },
+                            set: { newCheckInPain = Int($0) }
+                        ), in: 1...10, step: 1)
+                        .accentColor(lilac)
+                        HStack {
+                            Text("1")
+                            Spacer()
+                            Text("10")
+                        }
+                        Text("Pain: \(newCheckInPain)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Section {
+                        Button("Add Check-In") {
+                            var updatedCheckIns = entry.injuryCheckIns ?? []
+                            updatedCheckIns.append(InjuryCheckIn(date: newCheckInDate, pain: newCheckInPain))
+                            entry.injuryCheckIns = updatedCheckIns
+                            try? context.save()
+                            showAddCheckInSheet = false
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(lilac)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        .font(.headline)
+                    }
+                }
+                .navigationTitle("Add Check-In")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showAddCheckInSheet = false
+                        }
+                    }
+                }
             }
         }
     }
@@ -206,6 +275,18 @@ struct JournalEntryDetailView: View {
 
     private func hideKeyboard() {
         // Implementation of hideKeyboard function
+    }
+
+    private func deleteCheckIns(at offsets: IndexSet, from sortedCheckIns: [InjuryCheckIn]) {
+        guard var currentCheckIns = entry.injuryCheckIns else { return }
+        let sorted = currentCheckIns.sorted(by: { $0.date > $1.date })
+        for index in offsets {
+            if let originalIndex = currentCheckIns.firstIndex(of: sorted[index]) {
+                currentCheckIns.remove(at: originalIndex)
+            }
+        }
+        entry.injuryCheckIns = currentCheckIns
+        try? context.save()
     }
 }
 

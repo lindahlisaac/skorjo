@@ -15,11 +15,13 @@ struct ContentView: View {
     @State private var showReflectionForm = false
     @State private var showWeeklyRecapForm = false
     @State private var showInjuryForm = false
+    @State private var selectedHomeEntry: JournalEntry? = nil
+    @State private var selectedBrowseEntry: JournalEntry? = nil
 
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
-                JournalHomeView()
+                JournalHomeView(selectedEntry: $selectedHomeEntry)
                     .tabItem {
                         Label("Home", systemImage: "house.fill")
                     }
@@ -32,11 +34,17 @@ struct ContentView: View {
                     }
                     .tag(1)
 
-                BrowseEntriesView()
+                BrowseEntriesView(selectedEntry: $selectedBrowseEntry)
                     .tabItem {
                         Label("Browse", systemImage: "magnifyingglass")
                     }
                     .tag(2)
+            }
+            .onChange(of: selectedTab) { _, newValue in
+                if newValue == 0 {
+                    selectedHomeEntry = nil
+                    selectedBrowseEntry = nil
+                }
             }
             .tint(Color(red: 0.784, green: 0.635, blue: 0.784)) // lilac accent
 

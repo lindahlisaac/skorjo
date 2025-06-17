@@ -14,9 +14,10 @@ struct BrowseEntriesView: View {
     @State private var startDate: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     @State private var endDate: Date = .now
     @State private var searchText: String = ""
+    @Binding var selectedEntry: JournalEntry?
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Form {
                     Section(header: Text("Filter by Activity Type")) {
@@ -36,7 +37,9 @@ struct BrowseEntriesView: View {
                 }
 
                 List(filteredEntries) { entry in
-                    NavigationLink(destination: JournalEntryDetailView(entry: entry)) {
+                    Button(action: {
+                        selectedEntry = entry
+                    }) {
                         VStack(alignment: .leading) {
                             if entry.activityType == .injury {
                                 Text(entry.injuryName ?? "Injury")
@@ -54,7 +57,7 @@ struct BrowseEntriesView: View {
                             } else {
                                 Text(entry.title)
                                     .font(.headline)
-                                if entry.activityType == .weeklyRecap, let endDate = entry.endDate {
+                                if entry.activityType == .weeklyRecap {
                                     let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
                                     Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
                                         .font(.subheadline)
@@ -72,10 +75,15 @@ struct BrowseEntriesView: View {
                             }
                         }
                     }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 }
                 .searchable(text: $searchText)
             }
             .navigationTitle("Browse Entries")
+            .navigationDestination(item: $selectedEntry) { entry in
+                JournalEntryDetailView(entry: entry)
+            }
         }
     }
 
