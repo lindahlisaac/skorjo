@@ -8,55 +8,74 @@
 import SwiftUI
 
 struct EntryTypeSelectorView: View {
-    @Environment(\.dismiss) var dismiss
+    @Binding var showActivityForm: Bool
+    @Binding var showReflectionForm: Bool
+    var onSelectActivity: () -> Void
+    var onSelectReflection: () -> Void
+    var onSelectWeeklyRecap: () -> Void
+    var onSelectInjury: () -> Void
 
-    let onSelectActivity: () -> Void
-    let onSelectReflection: () -> Void
+    private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 32) {
-                Text("What would you like to add?")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .padding(.top, 40)
-
-                Button {
-                    onSelectActivity()
-                } label: {
-                    Label("Activity Entry", systemImage: "figure.run")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                }
-
-                Button {
-                    onSelectReflection()
-                } label: {
-                    Label("Reflection", systemImage: "pencil.and.outline")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .foregroundColor(.primary)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                }
-
-                Spacer()
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
+        let buttonSize = UIScreen.main.bounds.width * 0.4
+        let columns = [GridItem(.flexible()), GridItem(.flexible())]
+        VStack(spacing: 24) {
+            Text("What would you like to add?")
+                .font(.headline)
+                .foregroundColor(lilac)
+            LazyVGrid(columns: columns, spacing: 24) {
+                Button(action: onSelectActivity) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "figure.run")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Activity")
+                            .font(.headline)
                     }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectReflection) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Reflection")
+                            .font(.headline)
+                    }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectWeeklyRecap) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Weekly Recap")
+                            .font(.headline)
+                    }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
+                }
+                Button(action: onSelectInjury) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "cross.case")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Injury")
+                            .font(.headline)
+                    }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
                 }
             }
+            Spacer()
         }
+        .padding()
     }
 }
