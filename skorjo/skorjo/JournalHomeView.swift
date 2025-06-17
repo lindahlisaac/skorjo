@@ -5,12 +5,15 @@ struct JournalHomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \JournalEntry.date, order: .reverse, animation: .default) private var entries: [JournalEntry]
     @State private var showExportSheet = false
+    @Binding var selectedEntry: JournalEntry?
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(sortedEntries) { entry in
-                    NavigationLink(destination: JournalEntryDetailView(entry: entry)) {
+                    Button(action: {
+                        selectedEntry = entry
+                    }) {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
                                 Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
@@ -90,6 +93,9 @@ struct JournalHomeView: View {
             }
             .sheet(isPresented: $showExportSheet) {
                 ExportView()
+            }
+            .navigationDestination(item: $selectedEntry) { entry in
+                JournalEntryDetailView(entry: entry)
             }
         }
     }
