@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import Charts
 
 struct JournalEntryDetailView: View {
     @Environment(\.modelContext) private var context
@@ -30,6 +31,27 @@ struct JournalEntryDetailView: View {
     }
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
+
+    private func aggregateDataByMonth(checkIns: [InjuryCheckIn]) -> [(date: Date, pain: Double)] {
+        let calendar = Calendar.current
+        let groupedData = Dictionary(grouping: checkIns) { checkIn in
+            calendar.startOfMonth(for: checkIn.date)
+        }
+        
+        return groupedData.map { (date, checkIns) in
+            let averagePain = Double(checkIns.map { $0.pain }.reduce(0, +)) / Double(checkIns.count)
+            return (date: date, pain: averagePain)
+        }.sorted { $0.date < $1.date }
+    }
+    
+    private func shouldAggregateByMonth(checkIns: [InjuryCheckIn]) -> Bool {
+        guard let firstDate = checkIns.first?.date,
+              let lastDate = checkIns.last?.date else { return false }
+        
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.month], from: firstDate, to: lastDate)
+        return (components.month ?? 0) >= 2 // Aggregate if span is 2 or more months
+    }
 
     var body: some View {
         Form {
@@ -66,9 +88,47 @@ struct JournalEntryDetailView: View {
                         Spacer()
                     }
                 }
-                if entry.activityType == .injury, let checkIns = entry.injuryCheckIns, !checkIns.isEmpty {
-                    Section(header: Text("Check-Ins").foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))) {
-                        ForEach(checkIns.sorted(by: { $0.date > $1.date }), id: \ .self) { checkIn in
+                
+                if entry.activityType == .injury, let checkIns = entry.injuryCheckIns {
+                    Section(header: Text("Pain Level Over Time").foregroundColor(lilac)) {
+                        let sortedCheckIns = checkIns.sorted(by: { $0.date < $1.date })
+                        let shouldAggregate = shouldAggregateByMonth(checkIns: sortedCheckIns)
+                        let dataPoints = shouldAggregate ? aggregateDataByMonth(checkIns: sortedCheckIns) : sortedCheckIns.map { (date: $0.date, pain: Double($0.pain)) }
+                        
+                        Chart {
+                            ForEach(dataPoints, id: \.date) { point in
+                                LineMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Pain", point.pain)
+                                )
+                                .foregroundStyle(lilac)
+                                .interpolationMethod(.catmullRom)
+                                
+                                PointMark(
+                                    x: .value("Date", point.date),
+                                    y: .value("Pain", point.pain)
+                                )
+                                .foregroundStyle(lilac)
+                            }
+                        }
+                        .frame(height: 200)
+                        .chartYScale(domain: 1...10)
+                        .chartYAxis {
+                            AxisMarks(values: .automatic(desiredCount: 5))
+                        }
+                        .chartXAxis {
+                            AxisMarks(values: .automatic(desiredCount: 5)) { value in
+                                if let date = value.as(Date.self) {
+                                    AxisValueLabel {
+                                        Text(date.formatted(date: .numeric, time: .omitted))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    Section(header: Text("Check-Ins").foregroundColor(lilac)) {
+                        ForEach(checkIns.sorted(by: { $0.date > $1.date }), id: \.self) { checkIn in
                             HStack {
                                 Text(checkIn.date.formatted(date: .abbreviated, time: .omitted))
                                     .font(.subheadline)
@@ -89,7 +149,7 @@ struct JournalEntryDetailView: View {
                 Button("Edit") {
                     showEditSheet = true
                 }
-                .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                .foregroundColor(lilac)
             }
         }
         .sheet(isPresented: $showEditSheet) {
@@ -146,5 +206,13 @@ struct JournalEntryDetailView: View {
 
     private func hideKeyboard() {
         // Implementation of hideKeyboard function
+    }
+}
+
+// Add Calendar extension for month start date
+extension Calendar {
+    func startOfMonth(for date: Date) -> Date {
+        let components = dateComponents([.year, .month], from: date)
+        return self.date(from: components) ?? date
     }
 }
