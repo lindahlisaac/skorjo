@@ -27,6 +27,9 @@ struct JournalEntryDetailView: View {
     @State private var showAddCheckInSheet = false
     @State private var newCheckInDate = Date()
     @State private var newCheckInPain = 5
+    @State private var newCheckInNotes = ""
+    @State private var expandedCheckInIndices: Set<Int> = []
+    @State private var isResolved = false
 
     enum Field: Hashable {
         case title, text, stravaLink
@@ -72,6 +75,16 @@ struct JournalEntryDetailView: View {
                 .listRowSeparator(.hidden)
                 Text(entry.title)
                     .font(.headline)
+                if entry.activityType == .injury, let side = entry.injurySide {
+                    HStack {
+                        Text("Side: ")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Text(side.rawValue)
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                    }
+                }
                 if entry.activityType != .injury {
                     Text(entry.text)
                         .padding(.top, 4)
@@ -114,7 +127,7 @@ struct JournalEntryDetailView: View {
                             }
                         }
                         .frame(height: 200)
-                        .chartYScale(domain: 1...10)
+                        .chartYScale(domain: 0...10)
                         .chartYAxis {
                             AxisMarks(values: .automatic(desiredCount: 5))
                         }
@@ -136,6 +149,8 @@ struct JournalEntryDetailView: View {
                             Button(action: {
                                 newCheckInDate = Date()
                                 newCheckInPain = 5
+                                newCheckInNotes = ""
+                                isResolved = false
                                 showAddCheckInSheet = true
                             }) {
                                 Label("Add Check-In", systemImage: "plus.circle")
@@ -145,20 +160,53 @@ struct JournalEntryDetailView: View {
                         }
                     ) {
                         let sortedCheckIns = checkIns.sorted(by: { $0.date > $1.date })
-                        ForEach(sortedCheckIns.indices, id: \ .self) { idx in
+                        ForEach(sortedCheckIns.indices, id: \.self) { idx in
                             let checkIn = sortedCheckIns[idx]
-                            HStack {
-                                Text(checkIn.date.formatted(date: .abbreviated, time: .omitted))
-                                    .font(.subheadline)
-                                Spacer()
-                                Text("Pain: \(checkIn.pain)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text(checkIn.date.formatted(date: .abbreviated, time: .omitted))
+                                        .font(.subheadline)
+                                    Spacer()
+                                    if checkIn.pain == 0 {
+                                        Text("Resolved")
+                                            .font(.subheadline)
+                                            .foregroundColor(.green)
+                                    } else {
+                                        Text("Pain: \(checkIn.pain)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Button(action: {
+                                        if expandedCheckInIndices.contains(idx) {
+                                            expandedCheckInIndices.remove(idx)
+                                        } else {
+                                            expandedCheckInIndices.insert(idx)
+                                        }
+                                    }) {
+                                        Image(systemName: expandedCheckInIndices.contains(idx) ? "chevron.down" : "chevron.right")
+                                            .foregroundColor(lilac)
+                                    }
+                                }
+                                if expandedCheckInIndices.contains(idx), let notes = checkIn.notes, !notes.isEmpty {
+                                    Text(notes)
+                                        .font(.body)
+                                        .foregroundColor(.primary)
+                                        .padding(.top, 2)
+                                }
                             }
                         }
                         .onDelete { offsets in
                             deleteCheckIns(at: offsets, from: sortedCheckIns)
                         }
+                    }
+                }
+
+                if entry.activityType == .injury, let details = entry.injuryDetails, !details.isEmpty {
+                    Section(header: Text("Injury Details").foregroundColor(lilac)) {
+                        Text(details)
+                            .font(.body)
+                            .foregroundColor(.primary)
+                            .padding(.vertical, 2)
                     }
                 }
             }
@@ -192,24 +240,43 @@ struct JournalEntryDetailView: View {
                             .accentColor(lilac)
                     }
                     Section(header: Text("Pain Level").foregroundColor(lilac)) {
+                        Toggle("Resolved", isOn: $isResolved)
+                            .toggleStyle(SwitchToggleStyle(tint: .green))
                         Slider(value: Binding(
-                            get: { Double(newCheckInPain) },
+                            get: { Double(isResolved ? 0 : newCheckInPain) },
                             set: { newCheckInPain = Int($0) }
                         ), in: 1...10, step: 1)
                         .accentColor(lilac)
+                        .disabled(isResolved)
                         HStack {
                             Text("1")
                             Spacer()
                             Text("10")
                         }
-                        Text("Pain: \(newCheckInPain)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        if isResolved {
+                            Text("Pain: 0 (Resolved)")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                        } else {
+                            Text("Pain: \(newCheckInPain)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Section(header: Text("Notes (optional)").foregroundColor(lilac)) {
+                        TextEditor(text: $newCheckInNotes)
+                            .frame(height: 60)
+                            .accentColor(lilac)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(lilac.opacity(0.2), lineWidth: 1)
+                            )
+                            .padding(.vertical, 4)
                     }
                     Section {
                         Button("Add Check-In") {
                             var updatedCheckIns = entry.injuryCheckIns ?? []
-                            updatedCheckIns.append(InjuryCheckIn(date: newCheckInDate, pain: newCheckInPain))
+                            updatedCheckIns.append(InjuryCheckIn(date: newCheckInDate, pain: isResolved ? 0 : newCheckInPain, notes: newCheckInNotes.trimmingCharacters(in: .whitespacesAndNewlines)))
                             entry.injuryCheckIns = updatedCheckIns
                             try? context.save()
                             showAddCheckInSheet = false
