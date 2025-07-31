@@ -5,6 +5,7 @@ struct JournalHomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \JournalEntry.date, order: .reverse, animation: .default) private var entries: [JournalEntry]
     @State private var showExportSheet = false
+    @State private var showImportSheet = false
     @Binding var selectedEntry: JournalEntry?
 
     var body: some View {
@@ -86,13 +87,23 @@ struct JournalHomeView: View {
             .navigationTitle("Skorjo Journal")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showExportSheet = true }) {
-                        Image(systemName: "square.and.arrow.up")
+                    Menu {
+                        Button(action: { showExportSheet = true }) {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
+                        Button(action: { showImportSheet = true }) {
+                            Label("Import", systemImage: "square.and.arrow.down")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
             .sheet(isPresented: $showExportSheet) {
                 ExportView()
+            }
+            .sheet(isPresented: $showImportSheet) {
+                ImportView()
             }
             .navigationDestination(item: $selectedEntry) { entry in
                 JournalEntryDetailView(entry: entry)
