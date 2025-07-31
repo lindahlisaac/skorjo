@@ -200,7 +200,8 @@ struct ImportView: View {
                 injuryStartDate: entryData.injuryStartDate,
                 injuryCheckIns: entryData.injuryCheckIns,
                 injuryDetails: entryData.injuryDetails,
-                injurySide: InjurySide(rawValue: entryData.injurySide ?? "") ?? .na
+                injurySide: InjurySide(rawValue: entryData.injurySide ?? "") ?? .na,
+                golfScore: entryData.golfScore
             )
             
             context.insert(newEntry)

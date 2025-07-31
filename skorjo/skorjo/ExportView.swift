@@ -194,22 +194,23 @@ struct ExportView: View {
             dateRange: selectedDateRange.rawValue,
             activityTypes: Array(selectedActivityTypes).map { $0.rawValue },
             entries: entries.map { entry in
-                EntryData(
-                    id: entry.id.uuidString,
-                    date: entry.date,
-                    title: entry.title,
-                    text: entry.text,
-                    stravaLink: entry.stravaLink,
-                    activityType: entry.activityType.rawValue,
-                    feeling: entry.feeling,
-                    endDate: entry.endDate,
-                    weekFeeling: entry.weekFeeling,
-                    injuryName: entry.injuryName,
-                    injuryStartDate: entry.injuryStartDate,
-                    injuryCheckIns: entry.injuryCheckIns,
-                    injuryDetails: entry.injuryDetails,
-                    injurySide: entry.injurySide?.rawValue
-                )
+                                    EntryData(
+                        id: entry.id.uuidString,
+                        date: entry.date,
+                        title: entry.title,
+                        text: entry.text,
+                        stravaLink: entry.stravaLink,
+                        activityType: entry.activityType.rawValue,
+                        feeling: entry.feeling,
+                        endDate: entry.endDate,
+                        weekFeeling: entry.weekFeeling,
+                        injuryName: entry.injuryName,
+                        injuryStartDate: entry.injuryStartDate,
+                        injuryCheckIns: entry.injuryCheckIns,
+                        injuryDetails: entry.injuryDetails,
+                        injurySide: entry.injurySide?.rawValue,
+                        golfScore: entry.golfScore
+                    )
             }
         )
         
@@ -258,6 +259,7 @@ struct EntryData: Codable {
     let injuryCheckIns: [InjuryCheckIn]?
     let injuryDetails: String?
     let injurySide: String?
+    let golfScore: Int?
 }
 
 struct ShareSheetItem: Identifiable {

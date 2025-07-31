@@ -15,6 +15,8 @@ enum ActivityType: String, Codable, CaseIterable {
     case bike = "Bike"
     case swim = "Swim"
     case lift = "Lift"
+    case yoga = "Yoga"
+    case golf = "Golf"
     case reflection = "Reflection"
     case other = "Other"
     case weeklyRecap = "Weekly Recap"
@@ -49,8 +51,9 @@ class JournalEntry {
     var injuryCheckIns: [InjuryCheckIn]?
     var injuryDetails: String?
     var injurySide: InjurySide?
+    var golfScore: Int? // Optional, only used for golf
 
-    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil, injuryName: String? = nil, injuryStartDate: Date? = nil, injuryCheckIns: [InjuryCheckIn]? = nil, injuryDetails: String? = nil, injurySide: InjurySide? = nil) {
+    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil, injuryName: String? = nil, injuryStartDate: Date? = nil, injuryCheckIns: [InjuryCheckIn]? = nil, injuryDetails: String? = nil, injurySide: InjurySide? = nil, golfScore: Int? = nil) {
         self.id = id
         self.date = date
         self.title = title
@@ -65,6 +68,7 @@ class JournalEntry {
         self.injuryCheckIns = injuryCheckIns
         self.injuryDetails = injuryDetails
         self.injurySide = injurySide
+        self.golfScore = golfScore
     }
 }
 

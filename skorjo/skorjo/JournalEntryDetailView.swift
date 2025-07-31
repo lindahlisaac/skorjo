@@ -104,6 +104,16 @@ struct JournalEntryDetailView: View {
                     }
                 }
                 
+                if entry.activityType == .golf, let score = entry.golfScore {
+                    HStack {
+                        Spacer()
+                        Text("Score: \(score)")
+                            .font(.caption)
+                            .foregroundColor(score <= 72 ? .green : score <= 80 ? .orange : .red)
+                        Spacer()
+                    }
+                }
+                
                 if entry.activityType == .injury, let checkIns = entry.injuryCheckIns {
                     Section(header: Text("Pain Level Over Time").foregroundColor(lilac)) {
                         let sortedCheckIns = checkIns.sorted(by: { $0.date < $1.date })
@@ -333,6 +343,8 @@ struct JournalEntryDetailView: View {
         case .bike: return "bicycle"
         case .swim: return "drop"
         case .lift: return "weightlifting"
+        case .yoga: return "figure.mind.and.body"
+        case .golf: return "figure.golf"
         case .reflection: return "brain"
         case .other: return "bolt"
         case .weeklyRecap: return "calendar.badge.clock"

@@ -21,6 +21,7 @@ struct ActivityEntryFormView: View {
     @State private var stravaLink: String = ""
     @State private var activityType: ActivityType = .run
     @State private var feeling: Int = 5
+    @State private var golfScore: Int = 72
 
     @FocusState private var focusedField: Field?
 
@@ -93,6 +94,20 @@ struct ActivityEntryFormView: View {
                         }
                     }
                 }
+                
+                if activityType == .golf {
+                    Section(header: Text("Golf Score").foregroundColor(lilac)) {
+                        HStack {
+                            Text("Score")
+                            Spacer()
+                            Stepper(value: $golfScore, in: 50...150) {
+                                Text("\(golfScore)")
+                                    .font(.headline)
+                                    .foregroundColor(golfScore <= 72 ? .green : golfScore <= 80 ? .orange : .red)
+                            }
+                        }
+                    }
+                }
 
                 Section {
                     Button(isEditing ? "Save Changes" : "Add Entry") {
@@ -104,7 +119,7 @@ struct ActivityEntryFormView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     .font(.headline)
-                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
             .navigationTitle(isEditing ? "Edit Activity" : "New Activity")
@@ -140,17 +155,14 @@ struct ActivityEntryFormView: View {
             dismiss()
         } else {
             // Add new
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            let prefixedTitle = formatter.string(from: date) + " - " + title.trimmingCharacters(in: .whitespaces)
-
             let entry = JournalEntry(
                 date: date,
-                title: prefixedTitle,
+                title: title.trimmingCharacters(in: .whitespaces),
                 text: text.trimmingCharacters(in: .whitespacesAndNewlines),
                 stravaLink: stravaLink.isEmpty ? nil : stravaLink,
                 activityType: activityType,
-                feeling: activityType != .reflection ? feeling : nil
+                feeling: activityType != .reflection ? feeling : nil,
+                golfScore: activityType == .golf ? golfScore : nil
             )
 
             context.insert(entry)
