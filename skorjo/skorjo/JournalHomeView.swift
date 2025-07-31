@@ -102,6 +102,10 @@ struct JournalHomeView: View {
                         Button(action: { showImportSheet = true }) {
                             Label("Import", systemImage: "square.and.arrow.down")
                         }
+                        Divider()
+                        Button(action: resetWelcomeScreen) {
+                            Label("Reset Welcome Screen", systemImage: "arrow.clockwise")
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
@@ -152,5 +156,14 @@ struct JournalHomeView: View {
             }
         }
         try? context.save()
+    }
+    
+    private func resetWelcomeScreen() {
+        let fetchDescriptor = FetchDescriptor<UserPreferences>()
+        if let preferences = try? context.fetch(fetchDescriptor).first {
+            preferences.hasSeenWelcomeScreen = false
+            try? context.save()
+            print("Welcome screen reset successfully!")
+        }
     }
 }
