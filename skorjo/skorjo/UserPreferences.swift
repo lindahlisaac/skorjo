@@ -4,6 +4,7 @@ import SwiftData
 @Model
 class UserPreferences {
     var hasSeenWelcomeScreen: Bool = false
+    var lastSeenAppVersion: String = "1.0.0"
     var preferredTheme: String = "system" // "light", "dark", "system"
     var notificationsEnabled: Bool = true
     var defaultActivityType: String = "Run"
@@ -32,6 +33,11 @@ class UserPreferences {
     
     func setDefaultActivityType(_ type: String) {
         defaultActivityType = type
+        updatedAt = Date()
+    }
+    
+    func markAppVersionSeen(_ version: String) {
+        lastSeenAppVersion = version
         updatedAt = Date()
     }
 } 

@@ -10,88 +10,94 @@ struct JournalHomeView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(sortedEntries) { entry in
-                    Button(action: {
-                        selectedEntry = entry
-                    }) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
-                                    .font(.caption)
-                                    .padding(6)
-                                    .background(Color.accentColor.opacity(0.1))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            VStack(spacing: 0) {
+                // What's New Card
+                WhatsNewCard()
+                    .padding(.top, 8)
+                
+                List {
+                    ForEach(sortedEntries) { entry in
+                        Button(action: {
+                            selectedEntry = entry
+                        }) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    Label(entry.activityType.rawValue, systemImage: icon(for: entry.activityType))
+                                        .font(.caption)
+                                        .padding(6)
+                                        .background(Color.accentColor.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                                Spacer()
+                                    Spacer()
 
-                                if entry.activityType == .weeklyRecap, let endDate = entry.endDate {
-                                    let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
-                                    Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                } else if entry.activityType == .injury, let injuryStart = entry.injuryStartDate {
-                                    Text("Started: \(injuryStart.formatted(date: .abbreviated, time: .omitted))")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
+                                    if entry.activityType == .weeklyRecap, let endDate = entry.endDate {
+                                        let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDate) ?? endDate
+                                        Text("\(startDate.formatted(date: .abbreviated, time: .omitted)) - \(endDate.formatted(date: .abbreviated, time: .omitted))")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    } else if entry.activityType == .injury, let injuryStart = entry.injuryStartDate {
+                                        Text("Started: \(injuryStart.formatted(date: .abbreviated, time: .omitted))")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    } else {
+                                        Text(entry.date.formatted(date: .abbreviated, time: .shortened))
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+
+                                if entry.activityType == .injury {
+                                    Text(entry.injuryName ?? "Injury")
+                                        .font(.headline)
+                                    if let checkIn = entry.injuryCheckIns?.sorted(by: { $0.date > $1.date }).first {
+                                        Text("Last Check-In: \(checkIn.date.formatted(date: .abbreviated, time: .omitted)), Pain: \(checkIn.pain)")
+                                            .font(.caption)
+                                            .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                    }
+                                } else if entry.activityType == .golf {
+                                    Text(entry.title)
+                                        .font(.headline)
+                                    if let score = entry.golfScore {
+                                        Text("Score: \(score)")
+                                            .font(.caption)
+                                            .foregroundColor(score <= 72 ? .green : score <= 80 ? .orange : .red)
+                                    }
                                 } else {
-                                    Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
+                                    Text(entry.title)
+                                        .font(.headline)
+
+                                    if entry.activityType == .weeklyRecap, let weekFeeling = entry.weekFeeling {
+                                        Text("Week Feeling: \(weekFeeling)")
+                                            .font(.caption)
+                                            .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                                    }
+                                }
+
+                                Text(entry.text)
+                                    .font(.body)
+                                    .foregroundColor(.primary)
+
+                                if let link = entry.stravaLink, !link.isEmpty {
+                                    Link(destination: URL(string: link)!) {
+                                        Label("View on Strava", systemImage: "link")
+                                            .font(.caption)
+                                            .foregroundColor(.orange)
+                                    }
                                 }
                             }
-
-                            if entry.activityType == .injury {
-                                Text(entry.injuryName ?? "Injury")
-                                    .font(.headline)
-                                if let checkIn = entry.injuryCheckIns?.sorted(by: { $0.date > $1.date }).first {
-                                    Text("Last Check-In: \(checkIn.date.formatted(date: .abbreviated, time: .omitted)), Pain: \(checkIn.pain)")
-                                        .font(.caption)
-                                        .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
-                                }
-                            } else if entry.activityType == .golf {
-                                Text(entry.title)
-                                    .font(.headline)
-                                if let score = entry.golfScore {
-                                    Text("Score: \(score)")
-                                        .font(.caption)
-                                        .foregroundColor(score <= 72 ? .green : score <= 80 ? .orange : .red)
-                                }
-                            } else {
-                                Text(entry.title)
-                                    .font(.headline)
-
-                                if entry.activityType == .weeklyRecap, let weekFeeling = entry.weekFeeling {
-                                    Text("Week Feeling: \(weekFeeling)")
-                                        .font(.caption)
-                                        .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
-                                }
-                            }
-
-                            Text(entry.text)
-                                .font(.body)
-                                .foregroundColor(.primary)
-
-                            if let link = entry.stravaLink, !link.isEmpty {
-                                Link(destination: URL(string: link)!) {
-                                    Label("View on Strava", systemImage: "link")
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-                                }
-                            }
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(12)
+                            .shadow(color: Color.primary.opacity(0.12), radius: 6, x: 0, y: 3)
+                            .padding(.vertical, 4)
                         }
-                        .padding()
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
-                        .shadow(color: Color.primary.opacity(0.12), radius: 6, x: 0, y: 3)
-                        .padding(.vertical, 4)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     }
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                    .onDelete(perform: deleteEntries)
                 }
-                .onDelete(perform: deleteEntries)
+                .listStyle(.plain)
             }
-            .listStyle(.plain)
             .navigationTitle("Skorjo Journal")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -105,6 +111,9 @@ struct JournalHomeView: View {
                         Divider()
                         Button(action: resetWelcomeScreen) {
                             Label("Reset Welcome Screen", systemImage: "arrow.clockwise")
+                        }
+                        Button(action: resetWhatsNew) {
+                            Label("Show What's New", systemImage: "sparkles")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -164,6 +173,15 @@ struct JournalHomeView: View {
             preferences.hasSeenWelcomeScreen = false
             try? context.save()
             print("Welcome screen reset successfully!")
+        }
+    }
+    
+    private func resetWhatsNew() {
+        let fetchDescriptor = FetchDescriptor<UserPreferences>()
+        if let preferences = try? context.fetch(fetchDescriptor).first {
+            preferences.lastSeenAppVersion = "1.0.0" // Reset to previous version
+            try? context.save()
+            print("What's New card reset successfully!")
         }
     }
 }
