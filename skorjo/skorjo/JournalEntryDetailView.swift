@@ -114,6 +114,28 @@ struct JournalEntryDetailView: View {
                     }
                 }
                 
+                if entry.activityType == .milestone {
+                    if let value = entry.achievementValue {
+                        HStack {
+                            Spacer()
+                            Text(value)
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                                .fontWeight(.medium)
+                            Spacer()
+                        }
+                    }
+                    if let milestoneDate = entry.milestoneDate {
+                        HStack {
+                            Spacer()
+                            Text("Achieved: \(milestoneDate.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                    }
+                }
+                
                 if entry.activityType == .injury, let checkIns = entry.injuryCheckIns {
                     Section(header: Text("Pain Level Over Time").foregroundColor(lilac)) {
                         let sortedCheckIns = checkIns.sorted(by: { $0.date < $1.date })
@@ -345,6 +367,7 @@ struct JournalEntryDetailView: View {
         case .lift: return "weightlifting"
         case .yoga: return "figure.mind.and.body"
         case .golf: return "figure.golf"
+        case .milestone: return "trophy.fill"
         case .reflection: return "brain"
         case .other: return "bolt"
         case .weeklyRecap: return "calendar.badge.clock"

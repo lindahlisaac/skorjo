@@ -54,15 +54,25 @@ struct JournalHomeView: View {
                                             .font(.caption)
                                             .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
                                     }
-                                } else if entry.activityType == .golf {
-                                    Text(entry.title)
-                                        .font(.headline)
-                                    if let score = entry.golfScore {
-                                        Text("Score: \(score)")
-                                            .font(.caption)
-                                            .foregroundColor(score <= 72 ? .green : score <= 80 ? .orange : .red)
-                                    }
-                                } else {
+                                                            } else if entry.activityType == .golf {
+                                Text(entry.title)
+                                    .font(.headline)
+                                if let score = entry.golfScore {
+                                    Text("Score: \(score)")
+                                        .font(.caption)
+                                        .foregroundColor(score <= 72 ? .green : score <= 80 ? .orange : .red)
+                                }
+                            } else if entry.activityType == .milestone {
+                                Text(entry.milestoneTitle ?? entry.title)
+                                    .font(.headline)
+                                    .foregroundColor(.orange)
+                                if let value = entry.achievementValue {
+                                    Text(value)
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                        .fontWeight(.medium)
+                                }
+                            } else {
                                     Text(entry.title)
                                         .font(.headline)
 
@@ -150,6 +160,7 @@ struct JournalHomeView: View {
         case .lift: return "dumbbell"
         case .yoga: return "figure.mind.and.body"
         case .golf: return "figure.golf"
+        case .milestone: return "trophy.fill"
         case .reflection: return "brain"
         case .other: return "bolt"
         case .weeklyRecap: return "calendar.badge.clock"

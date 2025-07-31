@@ -209,7 +209,11 @@ struct ExportView: View {
                         injuryCheckIns: entry.injuryCheckIns,
                         injuryDetails: entry.injuryDetails,
                         injurySide: entry.injurySide?.rawValue,
-                        golfScore: entry.golfScore
+                        golfScore: entry.golfScore,
+                        milestoneTitle: entry.milestoneTitle,
+                        achievementValue: entry.achievementValue,
+                        milestoneDate: entry.milestoneDate,
+                        milestoneNotes: entry.milestoneNotes
                     )
             }
         )
@@ -260,6 +264,10 @@ struct EntryData: Codable {
     let injuryDetails: String?
     let injurySide: String?
     let golfScore: Int?
+    let milestoneTitle: String?
+    let achievementValue: String?
+    let milestoneDate: Date?
+    let milestoneNotes: String?
 }
 
 struct ShareSheetItem: Identifiable {

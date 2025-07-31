@@ -10,10 +10,12 @@ import SwiftUI
 struct EntryTypeSelectorView: View {
     @Binding var showActivityForm: Bool
     @Binding var showReflectionForm: Bool
+    @Binding var showMilestoneForm: Bool
     var onSelectActivity: () -> Void
     var onSelectReflection: () -> Void
     var onSelectWeeklyRecap: () -> Void
     var onSelectInjury: () -> Void
+    var onSelectMilestone: () -> Void
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
@@ -66,6 +68,19 @@ struct EntryTypeSelectorView: View {
                         Image(systemName: "cross.case")
                             .font(.system(size: 32, weight: .medium))
                         Text("Injury")
+                            .font(.headline)
+                    }
+                    .foregroundColor(lilac)
+                    .frame(width: buttonSize, height: buttonSize)
+                    .background(lilac.opacity(0.2))
+                    .cornerRadius(16)
+                }
+
+                Button(action: onSelectMilestone) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "trophy.fill")
+                            .font(.system(size: 32, weight: .medium))
+                        Text("Milestone")
                             .font(.headline)
                     }
                     .foregroundColor(lilac)

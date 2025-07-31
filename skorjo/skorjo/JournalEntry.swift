@@ -17,6 +17,7 @@ enum ActivityType: String, Codable, CaseIterable {
     case lift = "Lift"
     case yoga = "Yoga"
     case golf = "Golf"
+    case milestone = "Milestone"
     case reflection = "Reflection"
     case other = "Other"
     case weeklyRecap = "Weekly Recap"
@@ -52,8 +53,12 @@ class JournalEntry {
     var injuryDetails: String?
     var injurySide: InjurySide?
     var golfScore: Int? // Optional, only used for golf
+    var milestoneTitle: String? // "First Marathon", "5K PR", etc.
+    var achievementValue: String? // "3:45:23", "18:42", etc.
+    var milestoneDate: Date? // When the milestone was achieved
+    var milestoneNotes: String? // The story, feelings, context
 
-    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil, injuryName: String? = nil, injuryStartDate: Date? = nil, injuryCheckIns: [InjuryCheckIn]? = nil, injuryDetails: String? = nil, injurySide: InjurySide? = nil, golfScore: Int? = nil) {
+    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil, injuryName: String? = nil, injuryStartDate: Date? = nil, injuryCheckIns: [InjuryCheckIn]? = nil, injuryDetails: String? = nil, injurySide: InjurySide? = nil, golfScore: Int? = nil, milestoneTitle: String? = nil, achievementValue: String? = nil, milestoneDate: Date? = nil, milestoneNotes: String? = nil) {
         self.id = id
         self.date = date
         self.title = title
@@ -69,6 +74,10 @@ class JournalEntry {
         self.injuryDetails = injuryDetails
         self.injurySide = injurySide
         self.golfScore = golfScore
+        self.milestoneTitle = milestoneTitle
+        self.achievementValue = achievementValue
+        self.milestoneDate = milestoneDate
+        self.milestoneNotes = milestoneNotes
     }
 }
 
