@@ -17,7 +17,6 @@ struct ContentView: View {
     @State private var showInjuryForm = false
     @State private var showMilestoneForm = false
     @State private var selectedHomeEntry: JournalEntry? = nil
-    @State private var selectedBrowseEntry: JournalEntry? = nil
 
     var body: some View {
         ZStack {
@@ -35,7 +34,7 @@ struct ContentView: View {
                     }
                     .tag(1)
 
-                BrowseEntriesView(selectedEntry: $selectedBrowseEntry)
+                BrowseEntriesView()
                     .tabItem {
                         Label("Browse", systemImage: "magnifyingglass")
                     }
@@ -44,7 +43,6 @@ struct ContentView: View {
             .onChange(of: selectedTab) { _, newValue in
                 if newValue == 0 {
                     selectedHomeEntry = nil
-                    selectedBrowseEntry = nil
                 }
             }
             .tint(Color(red: 0.784, green: 0.635, blue: 0.784)) // lilac accent

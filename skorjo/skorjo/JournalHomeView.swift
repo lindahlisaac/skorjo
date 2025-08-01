@@ -4,8 +4,7 @@ import SwiftData
 struct JournalHomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \JournalEntry.date, order: .reverse, animation: .default) private var entries: [JournalEntry]
-    @State private var showExportSheet = false
-    @State private var showImportSheet = false
+    @State private var showSideMenu = false
     @Binding var selectedEntry: JournalEntry?
 
     var body: some View {
@@ -110,15 +109,15 @@ struct JournalHomeView: View {
             }
             .navigationTitle("Skorjo Journal")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { showSideMenu = true }) {
+                        Image(systemName: "line.3.horizontal")
+                            .foregroundColor(.primary)
+                    }
+                }
+                
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
-                        Button(action: { showExportSheet = true }) {
-                            Label("Export", systemImage: "square.and.arrow.up")
-                        }
-                        Button(action: { showImportSheet = true }) {
-                            Label("Import", systemImage: "square.and.arrow.down")
-                        }
-                        Divider()
                         Button(action: resetWelcomeScreen) {
                             Label("Reset Welcome Screen", systemImage: "arrow.clockwise")
                         }
@@ -130,11 +129,8 @@ struct JournalHomeView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showExportSheet) {
-                ExportView()
-            }
-            .sheet(isPresented: $showImportSheet) {
-                ImportView()
+            .sheet(isPresented: $showSideMenu) {
+                SideMenuView()
             }
             .navigationDestination(item: $selectedEntry) { entry in
                 JournalEntryDetailView(entry: entry)
