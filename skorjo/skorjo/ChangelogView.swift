@@ -21,7 +21,8 @@ struct ChangelogView: View {
                 "✨ Introduced 'What's New' popup to highlight new features after updates",
                 "📱 Added About section with Skorjo's mission and purpose",
                 "🍔 Implemented hamburger menu for easy navigation and settings access",
-                "📤 Enhanced data export with JSON format and complete data model support"
+                "📤 Enhanced data export with JSON format and complete data model support",
+                "🔔 Added weekly recap notifications with customizable day and time preferences"
             ]
         ),
         ChangelogEntry(

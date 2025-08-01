@@ -8,6 +8,9 @@ class UserPreferences {
     var entryTypeOrder: [String] = ["Activity", "Reflection", "Weekly Recap", "Injury", "Milestone"]
     var preferredTheme: String = "system" // "light", "dark", "system"
     var notificationsEnabled: Bool = true
+    var weeklyRecapDay: Int = 1 // Sunday = 1, Monday = 2, etc.
+    var weeklyRecapHour: Int = 19 // 7:00 PM default
+    var weeklyRecapMinute: Int = 0
     var defaultActivityType: String = "Run"
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
