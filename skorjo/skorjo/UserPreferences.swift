@@ -5,6 +5,7 @@ import SwiftData
 class UserPreferences {
     var hasSeenWelcomeScreen: Bool = false
     var lastSeenAppVersion: String = "1.0.0"
+    var entryTypeOrder: [String] = ["Activity", "Reflection", "Weekly Recap", "Injury", "Milestone"]
     var preferredTheme: String = "system" // "light", "dark", "system"
     var notificationsEnabled: Bool = true
     var defaultActivityType: String = "Run"
@@ -38,6 +39,16 @@ class UserPreferences {
     
     func markAppVersionSeen(_ version: String) {
         lastSeenAppVersion = version
+        updatedAt = Date()
+    }
+    
+    func updateEntryTypeOrder(_ newOrder: [String]) {
+        entryTypeOrder = newOrder
+        updatedAt = Date()
+    }
+    
+    func resetEntryTypeOrder() {
+        entryTypeOrder = ["Activity", "Reflection", "Weekly Recap", "Injury", "Milestone"]
         updatedAt = Date()
     }
 } 
