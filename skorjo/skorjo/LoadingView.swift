@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import UserNotifications
 
 struct LoadingView: View {
     @State private var isActive = false
@@ -41,15 +40,13 @@ struct LoadingView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color("Background"))
             .ignoresSafeArea()
-                    .onAppear {
-            setupNotifications()
-            setupNotificationDelegate()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                withAnimation {
-                    checkFirstTimeUser()
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    withAnimation {
+                        checkFirstTimeUser()
+                    }
                 }
             }
-        }
         }
     }
     
@@ -72,48 +69,6 @@ struct LoadingView: View {
             showWelcome = false
             isActive = true
         }
-    }
-    
-    private func setupNotifications() {
-        // Set up notification categories for actions
-        let createRecapAction = UNNotificationAction(
-            identifier: "CREATE_RECAP",
-            title: "Start Reflection",
-            options: [.foreground]
-        )
-        
-        let remindLaterAction = UNNotificationAction(
-            identifier: "REMIND_LATER",
-            title: "Remind Me Later",
-            options: []
-        )
-        
-        let weeklyRecapCategory = UNNotificationCategory(
-            identifier: "WEEKLY_RECAP",
-            actions: [createRecapAction, remindLaterAction],
-            intentIdentifiers: [],
-            options: []
-        )
-        
-        UNUserNotificationCenter.current().setNotificationCategories([weeklyRecapCategory])
-        
-        // Request notification permission on app launch
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            DispatchQueue.main.async {
-                if granted {
-                    print("Notification permission granted on app launch")
-                } else {
-                    print("Notification permission denied on app launch")
-                    if let error = error {
-                        print("Error: \(error)")
-                    }
-                }
-            }
-        }
-    }
-    
-    private func setupNotificationDelegate() {
-        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
     }
 }
 

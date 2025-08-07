@@ -21,8 +21,7 @@ struct ChangelogView: View {
                 "✨ Introduced 'What's New' popup to highlight new features after updates",
                 "📱 Added About section with Skorjo's mission and purpose",
                 "🍔 Implemented hamburger menu for easy navigation and settings access",
-                "📤 Enhanced data export with JSON format and complete data model support",
-                "🔔 Added weekly recap notifications with customizable day and time preferences"
+                "📤 Enhanced data export with JSON format and complete data model support"
             ]
         ),
         ChangelogEntry(
@@ -59,8 +58,14 @@ struct ChangelogView: View {
                     .padding(.top, 20)
                     
                     // Changelog Entries
-                    ForEach(changelogData, id: \.version) { entry in
-                        ChangelogEntryView(entry: entry)
+                    ForEach(VersionHistory.versions.sorted(by: >), id: \.id) { version in
+                        ChangelogEntryView(
+                            entry: ChangelogEntry(
+                                version: version.id,
+                                date: version.date,
+                                changes: version.allFeatures
+                            )
+                        )
                     }
                     
                     // Footer
