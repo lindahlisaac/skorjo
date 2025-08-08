@@ -21,6 +21,8 @@ struct ActivityEntryFormView: View {
     @State private var stravaLink: String = ""
     @State private var activityType: ActivityType = .run
     @State private var feeling: Int = 5
+    @State private var golfScore: Int = 72
+    @State private var photos: [JournalPhoto] = []
 
     @FocusState private var focusedField: Field?
 
@@ -33,7 +35,8 @@ struct ActivityEntryFormView: View {
     var isEditing: Bool { entryToEdit != nil }
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -93,6 +96,24 @@ struct ActivityEntryFormView: View {
                         }
                     }
                 }
+                
+                if activityType == .golf {
+                    Section(header: Text("Golf Score").foregroundColor(lilac)) {
+                        HStack {
+                            Text("Score")
+                            Spacer()
+                            Stepper(value: $golfScore, in: 50...150) {
+                                Text("\(golfScore)")
+                                    .font(.headline)
+                                    .foregroundColor(golfScore <= 72 ? .green : golfScore <= 80 ? .orange : .red)
+                            }
+                        }
+                    }
+                }
+                
+                Section(header: Text("Photos").foregroundColor(lilac)) {
+                    PhotoPickerView(photos: $photos, maxPhotos: 5, lilac: lilac)
+                }
 
                 Section {
                     Button(isEditing ? "Save Changes" : "Add Entry") {
@@ -104,11 +125,24 @@ struct ActivityEntryFormView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     .font(.headline)
-                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
             .navigationTitle(isEditing ? "Edit Activity" : "New Activity")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(isEditing ? "Save Changes" : "Add Entry") {
+                        saveOrAddEntry()
+                    }
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
@@ -122,6 +156,8 @@ struct ActivityEntryFormView: View {
                     stravaLink = entry.stravaLink ?? ""
                     activityType = entry.activityType
                     feeling = entry.feeling ?? 5
+                    photos = entry.photos ?? []
+                }
                 }
             }
         }
@@ -136,23 +172,26 @@ struct ActivityEntryFormView: View {
             entry.stravaLink = stravaLink.isEmpty ? nil : stravaLink
             entry.activityType = activityType
             entry.feeling = activityType != .reflection ? feeling : nil
+            entry.photos = photos
             try? context.save()
             dismiss()
         } else {
             // Add new
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            let prefixedTitle = formatter.string(from: date) + " - " + title.trimmingCharacters(in: .whitespaces)
-
             let entry = JournalEntry(
                 date: date,
-                title: prefixedTitle,
+                title: title.trimmingCharacters(in: .whitespaces),
                 text: text.trimmingCharacters(in: .whitespacesAndNewlines),
                 stravaLink: stravaLink.isEmpty ? nil : stravaLink,
                 activityType: activityType,
-                feeling: activityType != .reflection ? feeling : nil
+                feeling: activityType != .reflection ? feeling : nil,
+                golfScore: activityType == .golf ? golfScore : nil,
+                photos: photos
             )
 
+            // Insert photos into context first
+            for photo in photos {
+                context.insert(photo)
+            }
             context.insert(entry)
             try? context.save()
             dismiss()

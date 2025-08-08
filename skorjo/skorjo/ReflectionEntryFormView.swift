@@ -31,7 +31,8 @@ struct ReflectionEntryFormView: View {
     var isEditing: Bool { entryToEdit != nil }
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -75,6 +76,19 @@ struct ReflectionEntryFormView: View {
             }
             .navigationTitle(isEditing ? "Edit Reflection" : "New Reflection")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(isEditing ? "Save Changes" : "Add Reflection") {
+                        saveOrAddReflection()
+                    }
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
@@ -92,6 +106,7 @@ struct ReflectionEntryFormView: View {
                         text = entry.text
                         tag = ""
                     }
+                }
                 }
             }
         }

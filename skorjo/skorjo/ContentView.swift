@@ -15,8 +15,8 @@ struct ContentView: View {
     @State private var showReflectionForm = false
     @State private var showWeeklyRecapForm = false
     @State private var showInjuryForm = false
+    @State private var showMilestoneForm = false
     @State private var selectedHomeEntry: JournalEntry? = nil
-    @State private var selectedBrowseEntry: JournalEntry? = nil
 
     var body: some View {
         ZStack {
@@ -34,7 +34,7 @@ struct ContentView: View {
                     }
                     .tag(1)
 
-                BrowseEntriesView(selectedEntry: $selectedBrowseEntry)
+                BrowseEntriesView()
                     .tabItem {
                         Label("Browse", systemImage: "magnifyingglass")
                     }
@@ -43,7 +43,6 @@ struct ContentView: View {
             .onChange(of: selectedTab) { _, newValue in
                 if newValue == 0 {
                     selectedHomeEntry = nil
-                    selectedBrowseEntry = nil
                 }
             }
             .tint(Color(red: 0.784, green: 0.635, blue: 0.784)) // lilac accent
@@ -78,6 +77,7 @@ struct ContentView: View {
             EntryTypeSelectorView(
                 showActivityForm: $showActivityForm,
                 showReflectionForm: $showReflectionForm,
+                showMilestoneForm: $showMilestoneForm,
                 onSelectActivity: {
                     showEntryTypeSheet = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -101,6 +101,13 @@ struct ContentView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         showInjuryForm = true
                     }
+                },
+
+                onSelectMilestone: {
+                    showEntryTypeSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showMilestoneForm = true
+                    }
                 }
             )
         }
@@ -115,6 +122,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showInjuryForm) {
             InjuryEntryFormView()
+        }
+        .sheet(isPresented: $showMilestoneForm) {
+            MilestoneEntryFormView()
         }
     }
 }
