@@ -94,19 +94,16 @@ struct JournalEntryDetailView: View {
                 }
             }
             
-            // Photos Section - Debug
-            Section {
-                Text("Photos found: \(entry.photos.count)")
-                    .font(.headline)
-                    .foregroundColor(lilac)
-                    .padding(.bottom, 4)
-                
-                if !entry.photos.isEmpty {
+            // Photos Section
+            if !entry.photos.isEmpty {
+                Section {
+                    Text("Photos")
+                        .font(.headline)
+                        .foregroundColor(lilac)
+                        .padding(.bottom, 4)
+                    
                     PhotoGalleryView(photos: entry.photos)
                         .padding(.vertical, 8)
-                } else {
-                    Text("No photos to display")
-                        .foregroundColor(.secondary)
                 }
             }
             

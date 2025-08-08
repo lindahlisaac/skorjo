@@ -32,13 +32,16 @@ enum VersionHistory {
             date: "July 2025",
             title: "What's New in Skorjo",
             features: [
+                "📸 Add photos to your entries! Capture moments with Activities, Milestones, and Weekly Recaps",
                 "🏆 Introduced Milestone entries to celebrate your achievements",
                 "⛳ Added Golf and Yoga activity types for more tracking options",
                 "🤕 Enhanced injury tracking with side selection and healing status",
-                "🔔 Added weekly recap notifications with custom scheduling",
-                "📱 New menu system with About, Settings, and Export features"
+                "🔔 Added weekly recap notifications with custom scheduling"
             ],
             allFeatures: [
+                "📸 Photo support for Activity, Milestone, and Weekly Recap entries",
+                "🖼️ Advanced photo viewer with swipe navigation and zoom capabilities",
+                "📱 Up to 5 photos per entry with intuitive photo picker interface",
                 "⛳ Added Golf activity type with score tracking for your rounds",
                 "🧘 Added Yoga activity type for mindful movement sessions",
                 "🏆 Introduced Milestone entries to celebrate your achievements",

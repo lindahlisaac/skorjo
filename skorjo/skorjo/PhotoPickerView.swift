@@ -87,7 +87,6 @@ struct PhotoPickerView: View {
                 
                 let photo = JournalPhoto()
                 try photo.save(processedData)
-                print("DEBUG: Saved photo to \(photo.filePath)")
                 
                 await MainActor.run {
                     photos.append(photo)

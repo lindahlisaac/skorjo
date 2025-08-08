@@ -11,6 +11,7 @@ struct MilestoneEntryFormView: View {
     @State private var milestoneDate = Date()
     @State private var notes = ""
     @State private var feeling: Int = 10
+    @State private var photos: [JournalPhoto] = []
     @State private var showAlert = false
     @State private var alertMessage = ""
     
@@ -70,6 +71,10 @@ struct MilestoneEntryFormView: View {
                     TextField("Tell us about this milestone... What led to it? How did it feel? What does it mean to you?", text: $notes, axis: .vertical)
                         .lineLimit(5...10)
                         .focused($focusedField, equals: .notes)
+                }
+                
+                Section(header: Text("Photos")) {
+                    PhotoPickerView(photos: $photos, maxPhotos: 5, lilac: Color(red: 0.7, green: 0.6, blue: 0.9))
                 }
                 
                 Section(header: Text("Journal Entry Date")) {
@@ -136,9 +141,14 @@ struct MilestoneEntryFormView: View {
             milestoneTitle: title,
             achievementValue: achievementValue.isEmpty ? nil : achievementValue,
             milestoneDate: milestoneDate,
-            milestoneNotes: notes.isEmpty ? nil : notes
+            milestoneNotes: notes.isEmpty ? nil : notes,
+            photos: photos
         )
         
+        // Insert photos into context first
+        for photo in photos {
+            context.insert(photo)
+        }
         context.insert(entry)
         
         do {

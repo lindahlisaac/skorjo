@@ -13,6 +13,7 @@ struct WeeklyRecapEntryFormView: View {
     @State private var text: String = ""
     @State private var tag: String = ""
     @State private var weekFeeling: Int = 5
+    @State private var photos: [JournalPhoto] = []
     @FocusState private var focusedField: Field?
 
     enum Field: Hashable {
@@ -75,6 +76,11 @@ struct WeeklyRecapEntryFormView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+                
+                Section(header: Text("Photos").foregroundColor(lilac)) {
+                    PhotoPickerView(photos: $photos, maxPhotos: 5, lilac: lilac)
+                }
+                
                 Section {
                     Button(isEditing ? "Save Changes" : "Add Weekly Recap") {
                         saveOrAddWeeklyRecap()
@@ -121,6 +127,7 @@ struct WeeklyRecapEntryFormView: View {
                         tag = ""
                     }
                     weekFeeling = entry.weekFeeling ?? 5
+                    photos = entry.photos
                 }
                 }
             }
@@ -138,6 +145,7 @@ struct WeeklyRecapEntryFormView: View {
             entry.activityType = .weeklyRecap
             entry.date = startDate
             entry.weekFeeling = weekFeeling
+            entry.photos = photos
             try? context.save()
             dismiss()
         } else {
@@ -149,8 +157,14 @@ struct WeeklyRecapEntryFormView: View {
                 activityType: .weeklyRecap,
                 feeling: nil,
                 endDate: endDate,
-                weekFeeling: weekFeeling
+                weekFeeling: weekFeeling,
+                photos: photos
             )
+            
+            // Insert photos into context first
+            for photo in photos {
+                context.insert(photo)
+            }
             context.insert(entry)
             try? context.save()
             dismiss()

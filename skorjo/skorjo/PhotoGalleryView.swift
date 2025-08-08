@@ -27,7 +27,6 @@ struct PhotoGalleryView: View {
                         .frame(height: 120)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                         .onTapGesture {
-                            print("DEBUG: Tapping photo \(index + 1) of \(photos.count)")
                             // Load all images upfront for smooth swiping
                             let allImages = photos.compactMap { $0.load() }
                             selectedPhotoData = PhotoDisplayData(
@@ -35,7 +34,6 @@ struct PhotoGalleryView: View {
                                 images: allImages,
                                 initialIndex: index
                             )
-                            print("DEBUG: selectedPhotoData set with \(allImages.count) images")
                         }
                 } else {
                     // Debug: Show placeholder when image fails to load

@@ -188,16 +188,12 @@ struct ActivityEntryFormView: View {
                 photos: photos
             )
 
-            print("DEBUG: Saving entry with \(photos.count) photos")
             // Insert photos into context first
             for photo in photos {
                 context.insert(photo)
-                print("DEBUG: Inserted photo \(photo.id)")
             }
             context.insert(entry)
-            print("DEBUG: Entry photos count: \(entry.photos.count)")
             try? context.save()
-            print("DEBUG: Saved to context")
             dismiss()
         }
     }

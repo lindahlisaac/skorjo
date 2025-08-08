@@ -38,14 +38,8 @@ class JournalPhoto: Identifiable {
     
     // Load image data from file system
     func load() -> UIImage? {
-        print("DEBUG: Trying to load photo from \(filePath)")
-        guard let data = try? Data(contentsOf: filePath) else { 
-            print("DEBUG: Failed to load data from \(filePath)")
-            return nil 
-        }
-        let image = UIImage(data: data)
-        print("DEBUG: Image loaded successfully: \(image != nil)")
-        return image
+        guard let data = try? Data(contentsOf: filePath) else { return nil }
+        return UIImage(data: data)
     }
     
     // Delete photo file
