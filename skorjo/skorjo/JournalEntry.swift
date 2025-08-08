@@ -57,8 +57,9 @@ class JournalEntry {
     var achievementValue: String? // "3:45:23", "18:42", etc.
     var milestoneDate: Date? // When the milestone was achieved
     var milestoneNotes: String? // The story, feelings, context
+    @Relationship(deleteRule: .cascade) var photos: [JournalPhoto] = [] // Photos attached to the entry
 
-    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil, injuryName: String? = nil, injuryStartDate: Date? = nil, injuryCheckIns: [InjuryCheckIn]? = nil, injuryDetails: String? = nil, injurySide: InjurySide? = nil, golfScore: Int? = nil, milestoneTitle: String? = nil, achievementValue: String? = nil, milestoneDate: Date? = nil, milestoneNotes: String? = nil) {
+    init(id: UUID = UUID(), date: Date, title: String, text: String, stravaLink: String? = nil, activityType: ActivityType = .run, feeling: Int? = nil, endDate: Date? = nil, weekFeeling: Int? = nil, injuryName: String? = nil, injuryStartDate: Date? = nil, injuryCheckIns: [InjuryCheckIn]? = nil, injuryDetails: String? = nil, injurySide: InjurySide? = nil, golfScore: Int? = nil, milestoneTitle: String? = nil, achievementValue: String? = nil, milestoneDate: Date? = nil, milestoneNotes: String? = nil, photos: [JournalPhoto] = []) {
         self.id = id
         self.date = date
         self.title = title
@@ -78,6 +79,7 @@ class JournalEntry {
         self.achievementValue = achievementValue
         self.milestoneDate = milestoneDate
         self.milestoneNotes = milestoneNotes
+        self.photos = photos
     }
 }
 

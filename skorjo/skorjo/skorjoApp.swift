@@ -15,6 +15,6 @@ struct SkorjoApp: App {
             LoadingView()
                 .font(.system(size: 17, design: .rounded)) // 👈 Applies to all child views
         }
-        .modelContainer(for: [JournalEntry.self, UserPreferences.self])
+        .modelContainer(for: [JournalEntry.self, UserPreferences.self, JournalPhoto.self])
     }
 }

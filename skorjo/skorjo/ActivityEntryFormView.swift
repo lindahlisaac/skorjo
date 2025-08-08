@@ -22,6 +22,7 @@ struct ActivityEntryFormView: View {
     @State private var activityType: ActivityType = .run
     @State private var feeling: Int = 5
     @State private var golfScore: Int = 72
+    @State private var photos: [JournalPhoto] = []
 
     @FocusState private var focusedField: Field?
 
@@ -109,6 +110,10 @@ struct ActivityEntryFormView: View {
                         }
                     }
                 }
+                
+                Section(header: Text("Photos").foregroundColor(lilac)) {
+                    PhotoPickerView(photos: $photos, maxPhotos: 5, lilac: lilac)
+                }
 
                 Section {
                     Button(isEditing ? "Save Changes" : "Add Entry") {
@@ -151,6 +156,7 @@ struct ActivityEntryFormView: View {
                     stravaLink = entry.stravaLink ?? ""
                     activityType = entry.activityType
                     feeling = entry.feeling ?? 5
+                    photos = entry.photos ?? []
                 }
                 }
             }
@@ -166,6 +172,7 @@ struct ActivityEntryFormView: View {
             entry.stravaLink = stravaLink.isEmpty ? nil : stravaLink
             entry.activityType = activityType
             entry.feeling = activityType != .reflection ? feeling : nil
+            entry.photos = photos
             try? context.save()
             dismiss()
         } else {
@@ -177,11 +184,20 @@ struct ActivityEntryFormView: View {
                 stravaLink: stravaLink.isEmpty ? nil : stravaLink,
                 activityType: activityType,
                 feeling: activityType != .reflection ? feeling : nil,
-                golfScore: activityType == .golf ? golfScore : nil
+                golfScore: activityType == .golf ? golfScore : nil,
+                photos: photos
             )
 
+            print("DEBUG: Saving entry with \(photos.count) photos")
+            // Insert photos into context first
+            for photo in photos {
+                context.insert(photo)
+                print("DEBUG: Inserted photo \(photo.id)")
+            }
             context.insert(entry)
+            print("DEBUG: Entry photos count: \(entry.photos.count)")
             try? context.save()
+            print("DEBUG: Saved to context")
             dismiss()
         }
     }

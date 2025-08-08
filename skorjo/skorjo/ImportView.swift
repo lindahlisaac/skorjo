@@ -205,7 +205,13 @@ struct ImportView: View {
                 milestoneTitle: entryData.milestoneTitle,
                 achievementValue: entryData.achievementValue,
                 milestoneDate: entryData.milestoneDate,
-                milestoneNotes: entryData.milestoneNotes
+                milestoneNotes: entryData.milestoneNotes,
+                photos: entryData.photos?.compactMap { photoData in
+                    guard let imageData = Data(base64Encoded: photoData.imageData) else { return nil }
+                    let photo = JournalPhoto(id: UUID(uuidString: photoData.id) ?? UUID(), caption: photoData.caption)
+                    try? photo.save(imageData)
+                    return photo
+                } ?? []
             )
             
             context.insert(newEntry)

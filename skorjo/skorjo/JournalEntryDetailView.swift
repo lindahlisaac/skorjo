@@ -1,14 +1,8 @@
-//
-//  JournalEntryDetailView.swift
-//  skorjo
-//
-//  Created by Isaac Lindahl on 6/9/25.
-//
-
 import SwiftUI
 import SwiftData
 import Combine
 import Charts
+import PhotosUI
 
 struct JournalEntryDetailView: View {
     @Environment(\.modelContext) private var context
@@ -37,29 +31,9 @@ struct JournalEntryDetailView: View {
 
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
 
-    private func aggregateDataByMonth(checkIns: [InjuryCheckIn]) -> [(date: Date, pain: Double)] {
-        let calendar = Calendar.current
-        let groupedData = Dictionary(grouping: checkIns) { checkIn in
-            calendar.startOfMonth(for: checkIn.date)
-        }
-        
-        return groupedData.map { (date, checkIns) in
-            let averagePain = Double(checkIns.map { $0.pain }.reduce(0, +)) / Double(checkIns.count)
-            return (date: date, pain: averagePain)
-        }.sorted { $0.date < $1.date }
-    }
-    
-    private func shouldAggregateByMonth(checkIns: [InjuryCheckIn]) -> Bool {
-        guard let firstDate = checkIns.first?.date,
-              let lastDate = checkIns.last?.date else { return false }
-        
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.month], from: firstDate, to: lastDate)
-        return (components.month ?? 0) >= 2 // Aggregate if span is 2 or more months
-    }
-
     var body: some View {
         Form {
+            // Basic Info Section
             Section {
                 HStack {
                     Text(entry.date.formatted(date: .abbreviated, time: .shortened))
@@ -73,8 +47,10 @@ struct JournalEntryDetailView: View {
                 }
                 .padding(.bottom, 4)
                 .listRowSeparator(.hidden)
+                
                 Text(entry.title)
                     .font(.headline)
+                
                 if entry.activityType == .injury, let side = entry.injurySide {
                     HStack {
                         Text("Side: ")
@@ -85,21 +61,24 @@ struct JournalEntryDetailView: View {
                             .foregroundColor(.primary)
                     }
                 }
+                
                 if entry.activityType != .injury {
                     Text(entry.text)
                         .padding(.top, 4)
                 }
+                
                 if let link = entry.stravaLink,
                    let url = URL(string: link), !link.isEmpty {
                     Link("View on Strava", destination: url)
                         .padding(.top, 4)
                 }
+                
                 if entry.activityType != .reflection, let feeling = entry.feeling {
                     HStack {
                         Spacer()
                         Text("Feeling: \(feeling)")
                             .font(.caption)
-                            .foregroundColor(Color(red: 0.784, green: 0.635, blue: 0.784))
+                            .foregroundColor(lilac)
                         Spacer()
                     }
                 }
@@ -113,8 +92,27 @@ struct JournalEntryDetailView: View {
                         Spacer()
                     }
                 }
+            }
+            
+            // Photos Section - Debug
+            Section {
+                Text("Photos found: \(entry.photos.count)")
+                    .font(.headline)
+                    .foregroundColor(lilac)
+                    .padding(.bottom, 4)
                 
-                if entry.activityType == .milestone {
+                if !entry.photos.isEmpty {
+                    PhotoGalleryView(photos: entry.photos)
+                        .padding(.vertical, 8)
+                } else {
+                    Text("No photos to display")
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Milestone Section
+            if entry.activityType == .milestone {
+                Section {
                     if let value = entry.achievementValue {
                         HStack {
                             Spacer()
@@ -135,8 +133,11 @@ struct JournalEntryDetailView: View {
                         }
                     }
                 }
-                
-                if entry.activityType == .injury, let checkIns = entry.injuryCheckIns {
+            }
+            
+            // Injury Sections
+            if entry.activityType == .injury {
+                if let checkIns = entry.injuryCheckIns {
                     Section(header: Text("Pain Level Over Time").foregroundColor(lilac)) {
                         let sortedCheckIns = checkIns.sorted(by: { $0.date < $1.date })
                         let shouldAggregate = shouldAggregateByMonth(checkIns: sortedCheckIns)
@@ -174,23 +175,21 @@ struct JournalEntryDetailView: View {
                         }
                     }
                     
-                    Section(header:
-                        HStack {
-                            Text("Check-Ins").foregroundColor(lilac)
-                            Spacer()
-                            Button(action: {
-                                newCheckInDate = Date()
-                                newCheckInPain = 5
-                                newCheckInNotes = ""
-                                isResolved = false
-                                showAddCheckInSheet = true
-                            }) {
-                                Label("Add Check-In", systemImage: "plus.circle")
-                                    .labelStyle(IconOnlyLabelStyle())
-                            }
-                            .foregroundColor(lilac)
+                    Section(header: HStack {
+                        Text("Check-Ins").foregroundColor(lilac)
+                        Spacer()
+                        Button(action: {
+                            newCheckInDate = Date()
+                            newCheckInPain = 5
+                            newCheckInNotes = ""
+                            isResolved = false
+                            showAddCheckInSheet = true
+                        }) {
+                            Label("Add Check-In", systemImage: "plus.circle")
+                                .labelStyle(IconOnlyLabelStyle())
                         }
-                    ) {
+                        .foregroundColor(lilac)
+                    }) {
                         let sortedCheckIns = checkIns.sorted(by: { $0.date > $1.date })
                         ForEach(sortedCheckIns.indices, id: \.self) { idx in
                             let checkIn = sortedCheckIns[idx]
@@ -232,8 +231,8 @@ struct JournalEntryDetailView: View {
                         }
                     }
                 }
-
-                if entry.activityType == .injury, let details = entry.injuryDetails, !details.isEmpty {
+                
+                if let details = entry.injuryDetails, !details.isEmpty {
                     Section(header: Text("Injury Details").foregroundColor(lilac)) {
                         Text(details)
                             .font(.body)
@@ -332,31 +331,28 @@ struct JournalEntryDetailView: View {
             }
         }
     }
-
-    private func loadValues() {
-        editedTitle = entry.title
-        editedText = entry.text
-        editedStravaLink = entry.stravaLink ?? ""
-        editedActivityType = entry.activityType
-        editedDate = entry.date
-        editedFeeling = entry.feeling ?? 5
-    }
-
-    private func saveChanges() {
-        entry.title = editedTitle
-        entry.text = editedText
-        entry.stravaLink = editedStravaLink.isEmpty ? nil : editedStravaLink
-        entry.activityType = editedActivityType
-        entry.date = editedDate
-        entry.feeling = editedActivityType != .reflection ? editedFeeling : nil
-        do {
-            try context.save()
-            isEditing = false
-        } catch {
-            print("Error saving edits: \(error)")
+    
+    private func aggregateDataByMonth(checkIns: [InjuryCheckIn]) -> [(date: Date, pain: Double)] {
+        let calendar = Calendar.current
+        let groupedData = Dictionary(grouping: checkIns) { checkIn in
+            calendar.startOfMonth(for: checkIn.date)
         }
+        
+        return groupedData.map { (date, checkIns) in
+            let averagePain = Double(checkIns.map { $0.pain }.reduce(0, +)) / Double(checkIns.count)
+            return (date: date, pain: averagePain)
+        }.sorted { $0.date < $1.date }
     }
-
+    
+    private func shouldAggregateByMonth(checkIns: [InjuryCheckIn]) -> Bool {
+        guard let firstDate = checkIns.first?.date,
+              let lastDate = checkIns.last?.date else { return false }
+        
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.month], from: firstDate, to: lastDate)
+        return (components.month ?? 0) >= 2 // Aggregate if span is 2 or more months
+    }
+    
     private func icon(for type: ActivityType) -> String {
         switch type {
         case .run: return "figure.run"
@@ -374,11 +370,7 @@ struct JournalEntryDetailView: View {
         case .injury: return "cross.case"
         }
     }
-
-    private func hideKeyboard() {
-        // Implementation of hideKeyboard function
-    }
-
+    
     private func deleteCheckIns(at offsets: IndexSet, from sortedCheckIns: [InjuryCheckIn]) {
         guard var currentCheckIns = entry.injuryCheckIns else { return }
         let sorted = currentCheckIns.sorted(by: { $0.date > $1.date })

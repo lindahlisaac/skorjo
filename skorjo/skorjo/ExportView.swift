@@ -213,7 +213,19 @@ struct ExportView: View {
                         milestoneTitle: entry.milestoneTitle,
                         achievementValue: entry.achievementValue,
                         milestoneDate: entry.milestoneDate,
-                        milestoneNotes: entry.milestoneNotes
+                        milestoneNotes: entry.milestoneNotes,
+                        photos: entry.photos.isEmpty ? nil : entry.photos.compactMap { photo in
+                            guard let uiImage = photo.load(),
+                                  let imageData = JournalPhoto.processImage(uiImage),
+                                  let base64String = imageData.base64EncodedString().nilIfEmpty else {
+                                return nil
+                            }
+                            return PhotoData(
+                                id: photo.id.uuidString,
+                                caption: photo.caption,
+                                imageData: base64String
+                            )
+                        }
                     )
             }
         )
@@ -268,6 +280,13 @@ struct EntryData: Codable {
     let achievementValue: String?
     let milestoneDate: Date?
     let milestoneNotes: String?
+    let photos: [PhotoData]?
+}
+
+struct PhotoData: Codable {
+    let id: String
+    let caption: String?
+    let imageData: String // Base64 encoded image data
 }
 
 struct ShareSheetItem: Identifiable {
@@ -275,6 +294,12 @@ struct ShareSheetItem: Identifiable {
     let text: String
     let fileName: String
     let fileType: String?
+}
+
+extension String {
+    var nilIfEmpty: String? {
+        self.isEmpty ? nil : self
+    }
 }
 
 struct ShareSheet: UIViewControllerRepresentable {
