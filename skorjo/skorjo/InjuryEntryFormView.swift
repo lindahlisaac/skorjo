@@ -12,6 +12,8 @@ struct InjuryEntryFormView: View {
     @State private var injuryName: String = ""
     @State private var checkIns: [InjuryCheckIn] = [InjuryCheckIn(date: .now, pain: 5)]
     @FocusState private var focusedField: Field?
+    @State private var injuryDetails: String = ""
+    @State private var injurySide: InjurySide = .na
 
     enum Field: Hashable {
         case name
@@ -22,7 +24,8 @@ struct InjuryEntryFormView: View {
     var isEditing: Bool { entryToEdit != nil }
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -35,6 +38,32 @@ struct InjuryEntryFormView: View {
                     TextField("e.g. Sprained Ankle", text: $injuryName)
                         .accentColor(lilac)
                         .focused($focusedField, equals: .name)
+                }
+                Section(header: Text("Side").foregroundColor(lilac)) {
+                    Picker("Side", selection: $injurySide) {
+                        ForEach(InjurySide.allCases, id: \.self) { side in
+                            Text(side.rawValue).tag(side)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                Section(header: Text("Details").foregroundColor(lilac)) {
+                    ZStack(alignment: .topLeading) {
+                        if injuryDetails.isEmpty {
+                            Text("How did the injury occur?")
+                                .foregroundColor(Color(.placeholderText))
+                                .padding(.top, 8)
+                                .padding(.horizontal, 5)
+                        }
+                        TextEditor(text: $injuryDetails)
+                            .frame(height: 100)
+                            .accentColor(lilac)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(lilac.opacity(0.2), lineWidth: 1)
+                            )
+                            .padding(.vertical, 4)
+                    }
                 }
                 Section(header: Text("Check-Ins").foregroundColor(lilac)) {
                     ForEach(checkIns.indices, id: \.self) { idx in
@@ -85,6 +114,19 @@ struct InjuryEntryFormView: View {
             }
             .navigationTitle(isEditing ? "Edit Injury" : "New Injury")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(isEditing ? "Save Changes" : "Add Injury") {
+                        saveOrAddInjury()
+                    }
+                    .disabled(injuryName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
@@ -95,6 +137,9 @@ struct InjuryEntryFormView: View {
                     injuryStartDate = entry.injuryStartDate ?? .now
                     injuryName = entry.injuryName ?? ""
                     checkIns = entry.injuryCheckIns ?? [InjuryCheckIn(date: .now, pain: 5)]
+                    injuryDetails = entry.injuryDetails ?? ""
+                    injurySide = entry.injurySide ?? .na
+                }
                 }
             }
         }
@@ -108,6 +153,8 @@ struct InjuryEntryFormView: View {
             entry.date = injuryStartDate
             entry.title = injuryName.trimmingCharacters(in: .whitespaces)
             entry.activityType = .injury
+            entry.injuryDetails = injuryDetails.trimmingCharacters(in: .whitespacesAndNewlines)
+            entry.injurySide = injurySide
             try? context.save()
             dismiss()
         } else {
@@ -122,7 +169,9 @@ struct InjuryEntryFormView: View {
                 weekFeeling: nil,
                 injuryName: injuryName.trimmingCharacters(in: .whitespaces),
                 injuryStartDate: injuryStartDate,
-                injuryCheckIns: checkIns
+                injuryCheckIns: checkIns,
+                injuryDetails: injuryDetails.trimmingCharacters(in: .whitespacesAndNewlines),
+                injurySide: injurySide
             )
             context.insert(entry)
             try? context.save()

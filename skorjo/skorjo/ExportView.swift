@@ -7,7 +7,7 @@ struct ExportView: View {
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \JournalEntry.date, order: .reverse) private var entries: [JournalEntry]
     
-    @State private var selectedFormat: ExportFormat = .text
+    @State private var selectedFormat: ExportFormat = .json
     @State private var selectedDateRange: DateRange = .all
     @State private var startDate: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
     @State private var endDate: Date = .now
@@ -17,6 +17,7 @@ struct ExportView: View {
     @State private var shareSheet: ShareSheetItem?
     
     enum ExportFormat: String, CaseIterable {
+        case json = "JSON"
         case text = "Text"
         case csv = "CSV"
     }
@@ -139,6 +140,10 @@ struct ExportView: View {
         var fileType: String? = nil
         
         switch selectedFormat {
+        case .json:
+            text = exportAsJSON(entries: filtered)
+            fileName += ".json"
+            fileType = "public.json"
         case .text:
             text = ""
             for entry in filtered {
@@ -180,6 +185,62 @@ struct ExportView: View {
         shareSheet = ShareSheetItem(text: text, fileName: fileName, fileType: fileType)
     }
     
+    private func exportAsJSON(entries: [JournalEntry]) -> String {
+        let dateFormatter = ISO8601DateFormatter()
+        
+        let exportData = ExportData(
+            exportDate: Date(),
+            totalEntries: entries.count,
+            dateRange: selectedDateRange.rawValue,
+            activityTypes: Array(selectedActivityTypes).map { $0.rawValue },
+            entries: entries.map { entry in
+                                    EntryData(
+                        id: entry.id.uuidString,
+                        date: entry.date,
+                        title: entry.title,
+                        text: entry.text,
+                        stravaLink: entry.stravaLink,
+                        activityType: entry.activityType.rawValue,
+                        feeling: entry.feeling,
+                        endDate: entry.endDate,
+                        weekFeeling: entry.weekFeeling,
+                        injuryName: entry.injuryName,
+                        injuryStartDate: entry.injuryStartDate,
+                        injuryCheckIns: entry.injuryCheckIns,
+                        injuryDetails: entry.injuryDetails,
+                        injurySide: entry.injurySide?.rawValue,
+                        golfScore: entry.golfScore,
+                        milestoneTitle: entry.milestoneTitle,
+                        achievementValue: entry.achievementValue,
+                        milestoneDate: entry.milestoneDate,
+                        milestoneNotes: entry.milestoneNotes,
+                        photos: entry.photos.isEmpty ? nil : entry.photos.compactMap { photo in
+                            guard let uiImage = photo.load(),
+                                  let imageData = JournalPhoto.processImage(uiImage),
+                                  let base64String = imageData.base64EncodedString().nilIfEmpty else {
+                                return nil
+                            }
+                            return PhotoData(
+                                id: photo.id.uuidString,
+                                caption: photo.caption,
+                                imageData: base64String
+                            )
+                        }
+                    )
+            }
+        )
+        
+        do {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let jsonData = try encoder.encode(exportData)
+            return String(data: jsonData, encoding: .utf8) ?? ""
+        } catch {
+            return ""
+        }
+    }
+    
     private func csvEscape(_ value: String) -> String {
         var escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
         if escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"") {
@@ -189,11 +250,56 @@ struct ExportView: View {
     }
 }
 
+// MARK: - JSON Export Data Structures
+
+struct ExportData: Codable {
+    let exportDate: Date
+    let totalEntries: Int
+    let dateRange: String
+    let activityTypes: [String]
+    let entries: [EntryData]
+}
+
+struct EntryData: Codable {
+    let id: String
+    let date: Date
+    let title: String
+    let text: String
+    let stravaLink: String?
+    let activityType: String
+    let feeling: Int?
+    let endDate: Date?
+    let weekFeeling: Int?
+    let injuryName: String?
+    let injuryStartDate: Date?
+    let injuryCheckIns: [InjuryCheckIn]?
+    let injuryDetails: String?
+    let injurySide: String?
+    let golfScore: Int?
+    let milestoneTitle: String?
+    let achievementValue: String?
+    let milestoneDate: Date?
+    let milestoneNotes: String?
+    let photos: [PhotoData]?
+}
+
+struct PhotoData: Codable {
+    let id: String
+    let caption: String?
+    let imageData: String // Base64 encoded image data
+}
+
 struct ShareSheetItem: Identifiable {
     let id = UUID()
     let text: String
     let fileName: String
     let fileType: String?
+}
+
+extension String {
+    var nilIfEmpty: String? {
+        self.isEmpty ? nil : self
+    }
 }
 
 struct ShareSheet: UIViewControllerRepresentable {
