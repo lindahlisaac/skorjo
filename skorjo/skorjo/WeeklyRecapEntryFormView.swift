@@ -28,7 +28,8 @@ struct WeeklyRecapEntryFormView: View {
     }
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -89,6 +90,19 @@ struct WeeklyRecapEntryFormView: View {
             }
             .navigationTitle(isEditing ? "Edit Weekly Recap" : "New Weekly Recap")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(isEditing ? "Save Changes" : "Add Weekly Recap") {
+                        saveOrAddWeeklyRecap()
+                    }
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
@@ -107,6 +121,7 @@ struct WeeklyRecapEntryFormView: View {
                         tag = ""
                     }
                     weekFeeling = entry.weekFeeling ?? 5
+                }
                 }
             }
         }

@@ -34,7 +34,8 @@ struct ActivityEntryFormView: View {
     var isEditing: Bool { entryToEdit != nil }
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -124,6 +125,19 @@ struct ActivityEntryFormView: View {
             }
             .navigationTitle(isEditing ? "Edit Activity" : "New Activity")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(isEditing ? "Save Changes" : "Add Entry") {
+                        saveOrAddEntry()
+                    }
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
@@ -137,6 +151,7 @@ struct ActivityEntryFormView: View {
                     stravaLink = entry.stravaLink ?? ""
                     activityType = entry.activityType
                     feeling = entry.feeling ?? 5
+                }
                 }
             }
         }

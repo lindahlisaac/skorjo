@@ -23,7 +23,8 @@ struct MilestoneEntryFormView: View {
     private let lilac = Color(red: 0.784, green: 0.635, blue: 0.784)
     
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -98,19 +99,27 @@ struct MilestoneEntryFormView: View {
                     }
                 }
                 
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Add Entry") {
+                        saveEntry()
+                    }
+                    .disabled(title.isEmpty)
+                }
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
                 }
             }
-        }
-        .alert("Error", isPresented: $showAlert) {
+            }
+            .alert("Error", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(alertMessage)
+                    }
         }
     }
-    
+
     private func saveEntry() {
         guard !title.isEmpty else {
             alertMessage = "Please enter what you achieved."

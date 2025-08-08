@@ -24,7 +24,8 @@ struct InjuryEntryFormView: View {
     var isEditing: Bool { entryToEdit != nil }
 
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { hideKeyboard() }
@@ -113,6 +114,19 @@ struct InjuryEntryFormView: View {
             }
             .navigationTitle(isEditing ? "Edit Injury" : "New Injury")
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(isEditing ? "Save Changes" : "Add Injury") {
+                        saveOrAddInjury()
+                    }
+                    .disabled(injuryName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") { hideKeyboard() }
@@ -125,6 +139,7 @@ struct InjuryEntryFormView: View {
                     checkIns = entry.injuryCheckIns ?? [InjuryCheckIn(date: .now, pain: 5)]
                     injuryDetails = entry.injuryDetails ?? ""
                     injurySide = entry.injurySide ?? .na
+                }
                 }
             }
         }
